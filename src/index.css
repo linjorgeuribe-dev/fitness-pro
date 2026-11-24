@@ -1,0 +1,58 @@
+@import "tailwindcss";
+@import "@fontsource-variable/manrope";
+@import "@fontsource/barlow-condensed/600.css";
+@import "@fontsource/barlow-condensed/700.css";
+
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+@theme {
+  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-num: "Barlow Condensed", "Manrope Variable", ui-sans-serif, sans-serif;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-mute: var(--mute);
+  --color-ember: var(--ember);
+  --color-ember-ink: var(--ember-ink);
+  --color-amber: var(--amber);
+  --color-ok: var(--ok);
+  --color-bad: var(--bad);
+  --radius-card: 20px;
+}
+
+:root, [data-theme=dark] {
+  --bg: #0e1013; --surface: #171a1f; --raised: #20242b; --line: #2c313a;
+  --ink: #f4f1ea; --mute: #a3a8b3;
+  --ember: #ff6a33; --ember-ink: #1a0b04; --amber: #f5b83d; --ok: #4fd28a; --bad: #ff7b7b;
+  color-scheme: dark;
+}
+[data-theme=light] {
+  --bg: #f5f2ec; --surface: #ffffff; --raised: #ece8df; --line: #d9d4c8;
+  --ink: #16181c; --mute: #5a6070;
+  --ember: #c93f0b; --ember-ink: #ffffff; --amber: #8a5a00; --ok: #0f7a45; --bad: #b3261e;
+  color-scheme: light;
+}
+
+html { background: var(--bg); color: var(--ink); -webkit-tap-highlight-color: transparent; }
+body { font-family: var(--font-sans); min-height: 100dvh; overscroll-behavior-y: none; }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+:focus-visible { outline: 3px solid var(--ember); outline-offset: 2px; border-radius: 6px; }
+button, a, input, select { touch-action: manipulation; }
+input[type=number]::-webkit-inner-spin-button { appearance: none; }
+input[type=number] { -moz-appearance: textfield; }
+
+/* Animación de 2 fotogramas (inicio ↔ fin) */
+@keyframes swap { 0%, 42% { opacity: 0 } 50%, 92% { opacity: 1 } 100% { opacity: 0 } }
+.frame-b { animation: swap 2.6s ease-in-out infinite; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+.rise { animation: rise .28s ease-out both; }
+@keyframes sheet { from { transform: translateY(100%) } to { transform: none } }
+.sheet { animation: sheet .24s cubic-bezier(.2,.8,.2,1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .frame-b, .rise, .sheet { animation: none; }
+  .frame-b { opacity: 0; }
+}
+.pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 10px); }
+@media print { nav, .no-print { display: none !important; } html { background: #fff; color: #000; } }
