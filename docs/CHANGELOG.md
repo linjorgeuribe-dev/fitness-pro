@@ -1,4 +1,7 @@
 # Cambios
+## 0.4.0 — 2026-11-24
+Crear rutina propia eligiendo ejercicios (selección múltiple), renombrar/agregar/quitar días, y borrar rutinas directamente desde la lista con confirmación.
+
 ## 0.3.0 — 2026-11-24
 Nutrición y cuerpo: diario de calorías y macros con objetivos orientativos, agua, sueño, energía y recuperación; medidas corporales y % de grasa estimado; fotos de progreso privadas (solo en el dispositivo). Sexo opcional en el perfil. Corrección: toques muy seguidos al registrar series o agua ya no pueden pisarse entre sí.
 

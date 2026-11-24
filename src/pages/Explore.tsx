@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Search, SlidersHorizontal, X } from 'lucide-react'
+import { Check, Search, SlidersHorizontal, X } from 'lucide-react'
 import { searchExercises, useCatalog } from '../lib/catalog'
 import { CATEGORY, EQUIP, EQUIPS, LEVEL, MUSCLE, MUSCLES } from '../lib/labels'
 import type { Equip, Exercise, Muscle } from '../lib/types'
@@ -8,17 +8,18 @@ import { Button, Card, Chip, Empty, Page, Sheet, cx, inputCls } from '../compone
 import { ExerciseMedia } from '../components/ExerciseMedia'
 import { BodyMap } from '../components/BodyMap'
 
-export function ExerciseRow({ ex, onPick, right }: { ex: Exercise; onPick?: (ex: Exercise) => void; right?: React.ReactNode }) {
+export function ExerciseRow({ ex, onPick, right, picked }: { ex: Exercise; onPick?: (ex: Exercise) => void; right?: React.ReactNode; picked?: boolean }) {
   const body = <>
     <ExerciseMedia ex={ex} animate={false} className="w-24 shrink-0 !rounded-xl" />
     <div className="min-w-0 flex-1"><p className="line-clamp-2 font-bold leading-snug">{ex.n}</p>
       <p className="mt-0.5 truncate text-sm text-mute">{MUSCLE[ex.p[0]]} · {EQUIP[ex.eq]}</p>
-      <p className="text-xs font-semibold text-mute">{LEVEL[ex.lv]}</p></div>{right}</>
-  const cls = 'flex w-full items-center gap-3 rounded-2xl border border-line bg-surface p-2 text-left'
-  return onPick ? <button type="button" className={cls} onClick={() => onPick(ex)}>{body}</button> : <Link to={`/explore/${encodeURIComponent(ex.id)}`} className={cls}>{body}</Link>
+      <p className="text-xs font-semibold text-mute">{LEVEL[ex.lv]}</p></div>{right}
+    {picked !== undefined && <span className={cx('grid size-9 shrink-0 place-items-center rounded-full border-2', picked ? 'border-ok bg-ok text-black' : 'border-line text-transparent')} aria-hidden><Check size={18} strokeWidth={3} /></span>}</>
+  const cls = cx('flex w-full items-center gap-3 rounded-2xl border bg-surface p-2 text-left', picked ? 'border-ok' : 'border-line')
+  return onPick ? <button type="button" className={cls} aria-pressed={picked} onClick={() => onPick(ex)}>{body}</button> : <Link to={`/explore/${encodeURIComponent(ex.id)}`} className={cls}>{body}</Link>
 }
 
-export function ExercisePicker({ onPick, initialMuscle }: { onPick?: (ex: Exercise) => void; initialMuscle?: Muscle }) {
+export function ExercisePicker({ onPick, initialMuscle, selected }: { onPick?: (ex: Exercise) => void; initialMuscle?: Muscle; selected?: Set<string> }) {
   const { items, error, ready } = useCatalog()
   const [params, setParams] = useSearchParams()
   const [q, setQ] = useState(onPick ? '' : params.get('q') ?? '')
@@ -58,7 +59,7 @@ export function ExercisePicker({ onPick, initialMuscle }: { onPick?: (ex: Exerci
         <p className="mt-3 text-sm text-mute" aria-live="polite">{ready ? `${list.length} ejercicios` : 'Cargando catálogo…'}</p>
         {error && <p className="mt-3 text-sm text-bad" role="alert">{error}</p>}
         <div className="mt-2 space-y-2">
-          {list.slice(0, limit).map((x) => <ExerciseRow key={x.id} ex={x} onPick={onPick} />)}
+          {list.slice(0, limit).map((x) => <ExerciseRow key={x.id} ex={x} onPick={onPick} picked={selected ? selected.has(x.id) : undefined} />)}
           {ready && !error && list.length === 0 && <Empty title="Sin resultados">Prueba con otra palabra o quita algún filtro.</Empty>}
           {list.length > limit && <Button className="w-full" onClick={() => setLimit(limit + 30)}>Mostrar más</Button>}
         </div>

@@ -1,13 +1,13 @@
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { ChevronRight, Play, Sparkles, Star, Upload } from 'lucide-react'
+import { ChevronRight, ListPlus, Play, Sparkles, Star, Trash2, Upload } from 'lucide-react'
 import { db, uid } from '../lib/db'
 import { startSession, useActive, useProfile, useRoutines } from '../lib/store'
 import { loadCatalog } from '../lib/catalog'
 import { generateRoutine } from '../engine/generator'
 import { GOAL } from '../lib/labels'
 import type { Goal, Routine } from '../lib/types'
-import { Button, Card, Chip, Empty, Page, Sheet } from '../components/ui'
+import { Button, Card, Chip, Empty, Field, Page, Sheet, inputCls } from '../components/ui'
 
 function validRoutine(r: any): r is Routine {
   return r && typeof r.name === 'string' && Array.isArray(r.days) && r.days.length > 0 && r.days.every((d: any) => typeof d.name === 'string' && Array.isArray(d.items) &&
@@ -20,6 +20,14 @@ export default function Train() {
   const [gen, setGen] = useState(false)
   const [days, setDays] = useState(profile.days), [minutes, setMinutes] = useState(profile.minutes), [goal, setGoal] = useState<Goal>(profile.goal)
   const [msg, setMsg] = useState('')
+  const [own, setOwn] = useState(false), [ownName, setOwnName] = useState(''), [ownDays, setOwnDays] = useState(3)
+  const [del, setDel] = useState<Routine | null>(null)
+  const createOwn = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const now = Date.now()
+    const r: Routine = { id: uid(), name: ownName.trim() || 'Mi rutina', split: 'Personalizada', days: Array.from({ length: ownDays }, (_, i) => ({ name: `Día ${i + 1}`, items: [] })), fav: false, createdAt: now, updatedAt: now, nextDay: 0, generated: false }
+    await db.routines.put(r); setOwn(false); setOwnName(''); nav(`/routine/${r.id}`)
+  }
   const file = useRef<HTMLInputElement>(null)
 
   const create = async () => {
@@ -47,8 +55,9 @@ export default function Train() {
         {active && <Card className="border-ember bg-ember/10"><p className="font-extrabold">{active.dayName} en curso</p>
           <Button variant="primary" size="lg" className="mt-3 w-full" onClick={() => nav('/workout')}><Play size={20} fill="currentColor" /> Continuar entrenamiento</Button></Card>}
 
+        <Button size="lg" variant="primary" className="w-full" onClick={() => setGen(true)}><Sparkles size={20} /> Generar rutina automática</Button>
         <div className="grid grid-cols-2 gap-3">
-          <Button size="lg" variant="primary" onClick={() => setGen(true)}><Sparkles size={20} /> Generar rutina</Button>
+          <Button size="lg" onClick={() => setOwn(true)}><ListPlus size={20} /> Crear la mía</Button>
           <Button size="lg" disabled={!!active} onClick={async () => { await startSession(null); nav('/workout') }}>Entreno libre</Button>
         </div>
 
@@ -59,12 +68,27 @@ export default function Train() {
           {msg && <p className="mb-2 text-sm text-mute" role="status">{msg}</p>}
           {routines.length === 0 ? <Empty title="Sin rutinas todavía">Genera una rutina a tu medida o importa un archivo compartido.</Empty> : (
             <ul className="space-y-2">{routines.map((r) => (
-              <li key={r.id}><Link to={`/routine/${r.id}`} className="flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3">
+              <li key={r.id} className="flex items-stretch gap-2"><Link to={`/routine/${r.id}`} className="flex min-h-16 min-w-0 flex-1 items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3">
                 <div className="min-w-0 flex-1"><p className="flex items-center gap-2 truncate font-bold">{r.fav && <Star size={16} className="shrink-0 text-amber" fill="currentColor" aria-label="Favorita" />}{r.name}</p>
                   <p className="truncate text-sm text-mute">{r.days.length} días · siguiente: {r.days[r.nextDay % r.days.length]?.name}</p></div>
-                <ChevronRight className="text-mute" aria-hidden /></Link></li>))}</ul>)}
+                <ChevronRight className="shrink-0 text-mute" aria-hidden /></Link>
+                <button aria-label={`Eliminar rutina ${r.name}`} onClick={() => setDel(r)} className="grid w-12 shrink-0 place-items-center rounded-2xl border border-line bg-surface text-bad"><Trash2 size={18} /></button></li>))}</ul>)}
         </section>
       </div>
+
+      <Sheet open={own} onClose={() => setOwn(false)} title="Crear mi rutina">
+        <form onSubmit={createOwn} className="space-y-5">
+          <Field label="Nombre"><input className={inputCls} maxLength={60} value={ownName} onChange={(e) => setOwnName(e.target.value)} placeholder="Ej. Pierna y glúteo" /></Field>
+          <fieldset><legend className="mb-2 text-sm font-semibold">¿Cuántos días distintos tiene?</legend><div className="flex flex-wrap gap-2">{[1, 2, 3, 4, 5, 6, 7].map((d) => <Chip key={d} type="button" on={ownDays === d} onClick={() => setOwnDays(d)} aria-label={`${d} ${d === 1 ? 'día' : 'días'}`}>{d}</Chip>)}</div></fieldset>
+          <p className="text-sm text-mute">En el siguiente paso eliges los ejercicios de cada día. Después puedes agregar o quitar días.</p>
+          <Button type="submit" variant="primary" size="lg" className="w-full">Elegir ejercicios</Button>
+        </form>
+      </Sheet>
+      <Sheet open={!!del} onClose={() => setDel(null)} title="¿Eliminar esta rutina?">
+        <p className="text-sm text-mute">Se eliminará «{del?.name}». Tus entrenamientos ya registrados se conservan en el historial.</p>
+        <div className="mt-4 flex gap-3"><Button className="flex-1" onClick={() => setDel(null)}>Cancelar</Button>
+          <Button variant="danger" className="flex-1" onClick={async () => { if (del) await db.routines.delete(del.id); setDel(null) }}>Eliminar rutina</Button></div>
+      </Sheet>
 
       <Sheet open={gen} onClose={() => setGen(false)} title="Generar rutina">
         <div className="space-y-5">

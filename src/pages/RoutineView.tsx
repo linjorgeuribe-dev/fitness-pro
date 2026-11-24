@@ -8,6 +8,7 @@ import { exById, useCatalog } from '../lib/catalog'
 import { prescribe } from '../engine/prescription'
 import type { Routine, RoutineItem } from '../lib/types'
 import { Button, Card, Empty, Page, Sheet, inputCls } from '../components/ui'
+
 import { ExercisePicker } from './Explore'
 
 export const download = (name: string, text: string, type = 'application/json') => {
@@ -28,6 +29,7 @@ export default function RoutineView() {
   const r = useLiveQuery(async () => (await db.routines.get(id!)) ?? null, [id], undefined)
   const [addTo, setAddTo] = useState<number | null>(null)
   const [confirm, setConfirm] = useState(false)
+  const [delDay, setDelDay] = useState<number | null>(null)
   const [note, setNote] = useState('')
   const back = <button onClick={() => nav('/train')} aria-label="Volver" className="grid size-11 shrink-0 place-items-center rounded-full bg-raised"><ArrowLeft size={20} /></button>
   if (r === undefined) return <Page title="Rutina" back={back}><p className="text-mute" role="status">Cargando…</p></Page>
@@ -58,7 +60,10 @@ export default function RoutineView() {
         {r.days.map((d, di) => (
           <Card key={di}>
             <div className="flex items-center justify-between gap-3">
-              <h2 className="text-lg font-extrabold">{d.name}{r.nextDay % r.days.length === di && <span className="ml-2 rounded-full bg-ember/20 px-2 py-0.5 text-xs text-ember">Siguiente</span>}</h2>
+              <div className="min-w-0 flex-1">
+                <label><span className="sr-only">Nombre del día {di + 1}</span><input value={d.name} maxLength={40} onChange={(e) => save({ days: r.days.map((x, i) => (i === di ? { ...x, name: e.target.value } : x)) })} className="w-full rounded-lg bg-transparent text-lg font-extrabold outline-offset-4" /></label>
+                {r.nextDay % r.days.length === di && <span className="rounded-full bg-ember/20 px-2 py-0.5 text-xs font-bold text-ember">Siguiente</span>}
+              </div>
               <Button size="sm" variant="primary" className="no-print" disabled={!!active || d.items.length === 0} onClick={async () => { await startSession(r, di); nav('/workout') }}><Play size={16} fill="currentColor" /> Iniciar</Button>
             </div>
             <ul className="mt-3 divide-y divide-line">
@@ -80,18 +85,33 @@ export default function RoutineView() {
                   </div>
                 </li>))}
             </ul>
-            {d.items.length === 0 && <p className="mt-2 text-sm text-mute">Este día no tiene ejercicios.</p>}
-            <Button size="sm" className="no-print mt-2" onClick={() => setAddTo(di)}><Plus size={16} /> Agregar ejercicio</Button>
+            {d.items.length === 0 && <p className="mt-2 text-sm text-mute">Este día aún no tiene ejercicios. Agrega los que quieras desde el catálogo.</p>}
+            <div className="no-print mt-2 flex flex-wrap gap-2">
+              <Button size="sm" variant={d.items.length === 0 ? 'primary' : 'soft'} onClick={() => setAddTo(di)}><Plus size={16} /> Agregar ejercicios</Button>
+              {r.days.length > 1 && <Button size="sm" variant="danger" onClick={() => setDelDay(di)}><Trash2 size={16} /> Quitar día</Button>}
+            </div>
           </Card>
         ))}
+        {r.days.length < 7 && <Button className="no-print w-full" onClick={() => save({ days: [...r.days, { name: `Día ${r.days.length + 1}`, items: [] }] })}><Plus size={18} /> Agregar día</Button>}
       </div>
 
-      <Sheet open={addTo !== null} onClose={() => setAddTo(null)} title="Agregar ejercicio">
-        <ExercisePicker onPick={(ex) => {
-          const di = addTo!
-          if (!r.days[di].items.some((i) => i.exId === ex.id)) setItems(di, (x) => [...x, { exId: ex.id, ...prescribe(profile.goal, profile.level, ex.m === 'compound') }])
-          setAddTo(null)
-        }} />
+      <Sheet open={addTo !== null} onClose={() => setAddTo(null)} title={addTo !== null ? `Ejercicios · ${r.days[addTo]?.name ?? ''}` : ''}>
+        {addTo !== null && r.days[addTo] && <>
+          <div className="sticky top-0 z-10 -mx-1 mb-3 flex items-center justify-between gap-3 rounded-2xl bg-raised px-4 py-2">
+            <p className="text-sm font-semibold" aria-live="polite">{r.days[addTo].items.length} {r.days[addTo].items.length === 1 ? 'ejercicio elegido' : 'ejercicios elegidos'}</p>
+            <Button size="sm" variant="primary" onClick={() => setAddTo(null)}>Listo</Button>
+          </div>
+          <p className="mb-3 text-sm text-mute">Toca para agregar; toca de nuevo para quitar. Las series y repeticiones se proponen según tu objetivo y puedes cambiarlas después.</p>
+          <ExercisePicker selected={new Set(r.days[addTo].items.map((i) => i.exId))} onPick={(ex) => {
+            const di = addTo
+            setItems(di, (x) => x.some((i) => i.exId === ex.id) ? x.filter((i) => i.exId !== ex.id) : [...x, { exId: ex.id, ...prescribe(profile.goal, profile.level, ex.m === 'compound') }])
+          }} />
+        </>}
+      </Sheet>
+      <Sheet open={delDay !== null} onClose={() => setDelDay(null)} title="¿Quitar este día?">
+        <p className="text-sm text-mute">Se quitará «{delDay !== null ? r.days[delDay]?.name : ''}» con sus ejercicios de esta rutina.</p>
+        <div className="mt-4 flex gap-3"><Button className="flex-1" onClick={() => setDelDay(null)}>Cancelar</Button>
+          <Button variant="danger" className="flex-1" onClick={async () => { const i = delDay!; await save({ days: r.days.filter((_, j) => j !== i), nextDay: 0 }); setDelDay(null) }}>Quitar día</Button></div>
       </Sheet>
       <Sheet open={confirm} onClose={() => setConfirm(false)} title="¿Eliminar esta rutina?">
         <p className="text-sm text-mute">Tus entrenamientos registrados con ella se conservan en el historial.</p>
