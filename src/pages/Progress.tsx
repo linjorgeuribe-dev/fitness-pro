@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ChevronLeft, ChevronRight, Download } from 'lucide-react'
-import { db, uid } from '../lib/db'
+import { db, today, uid } from '../lib/db'
 import { fmtW, fromDisp, toDisp, useProfile, useSessions } from '../lib/store'
 import { exById, useCatalog } from '../lib/catalog'
 import { DAY, doneSets, lastTrained, muscleSets, personalRecords, recoveryPct, sessionMinutes, sessionVolume, startOfWeek, toCSV } from '../engine/analytics'
@@ -43,7 +43,7 @@ export default function Progress() {
     return { hrs, rec: hrs == null ? null : recoveryPct(hrs, setsThat), wk, freq }
   })()
 
-  const addBw = async () => { const v = Number(bw); if (!v || v <= 0 || v > 700) return; const date = new Date().toISOString().slice(0, 10)
+  const addBw = async () => { const v = Number(bw); if (!v || v <= 0 || v > 700) return; const date = today()
     const ex = await db.body.where('date').equals(date).first(); await db.body.put({ id: ex?.id ?? uid(), date, weightKg: fromDisp(v, U) }); setBw('') }
 
   return (

@@ -8,9 +8,9 @@ import { db } from './db'
  * cambios (y borrados) y se aplican los del servidor que no choquen con cambios locales.
  * Conflictos: gana la última escritura por registro; en el primer enlace gana el servidor.
  */
-type Kind = 'profile' | 'routine' | 'session' | 'body'
+type Kind = 'profile' | 'routine' | 'session' | 'body' | 'day' | 'measure'
 type Change = { kind: Kind; id: string; data: any; deleted: boolean }
-const TABLES: Record<Kind, () => Table<any, string>> = { profile: () => db.profile, routine: () => db.routines, session: () => db.sessions, body: () => db.body }
+const TABLES: Record<Kind, () => Table<any, string>> = { profile: () => db.profile, routine: () => db.routines, session: () => db.sessions, body: () => db.body, day: () => db.days, measure: () => db.measures }
 const KINDS = Object.keys(TABLES) as Kind[]
 
 function fingerprint(s: string) { // cyrb53
@@ -54,7 +54,7 @@ async function round(pushLocal: boolean) {
   const dirty = new Set(outgoing.map((c) => `${c.kind}:${c.id}`))
   const res: { changes: Change[]; cursor: number; more: boolean } = await api('sync', { since, changes: outgoing.slice(0, 500) })
   const sent = outgoing.slice(0, 500)
-  await db.transaction('rw', [db.profile, db.routines, db.sessions, db.body, db.synced, db.kv], async () => {
+  await db.transaction('rw', [db.profile, db.routines, db.sessions, db.body, db.days, db.measures, db.synced, db.kv], async () => {
     for (const c of res.changes) {
       const key = `${c.kind}:${c.id}`
       if (dirty.has(key) || !TABLES[c.kind]) continue // el cambio local, más reciente, ya se envió

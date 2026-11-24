@@ -10,7 +10,7 @@
 | 6 | Entrenamiento en vivo: registro, RIR, temporizador con sonido/vibración, pausa, autoguardado, sustituir, notas, resumen | ✅ hecho · voz ⏳ |
 | 7 | Progreso: indicadores, calendario, récords, 1RM estimado, distribución muscular, alertas de desequilibrio, CSV; sobrecarga progresiva explicada | ✅ hecho |
 | 8 | Entrenador virtual con IA (proveedor desacoplado) | ⏳ pendiente (requiere backend y llave de API) |
-| 9 | Nutrición, sueño, medidas, fotos; integraciones | ⏳ pendiente (solo peso corporal hoy) |
+| 9 | Nutrición (calorías y macros con objetivos orientativos), agua, sueño, energía, recuperación percibida, medidas, % de grasa estimado, fotos privadas | ✅ hecho · base de alimentos e integraciones ⏳ |
 | 10 | Rendimiento, seguridad, pruebas | ✅ primera ronda medida (`TESTING.md`) |
 | 11 | Despliegue | ver `DEPLOYMENT.md` |
 

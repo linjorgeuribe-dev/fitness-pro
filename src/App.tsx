@@ -14,6 +14,7 @@ const RoutineView = lazy(() => import('./pages/RoutineView'))
 const Workout = lazy(() => import('./pages/Workout'))
 const Summary = lazy(() => import('./pages/Summary'))
 const Progress = lazy(() => import('./pages/Progress'))
+const Body = lazy(() => import('./pages/Body'))
 const ProfilePage = lazy(() => import('./pages/Profile'))
 
 const TABS = [
@@ -68,6 +69,7 @@ export default function App() {
             <Route path="/workout" element={<Workout />} />
             <Route path="/session/:id" element={<Summary />} />
             <Route path="/progress" element={<Progress />} />
+            <Route path="/cuerpo" element={<Body />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

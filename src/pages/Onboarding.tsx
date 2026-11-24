@@ -53,6 +53,8 @@ export function ProfileForm({ p, set, step }: { p: Profile; set: (patch: Partial
         <Field label="Nombre (opcional)"><input className={inputCls} value={p.name} maxLength={40} autoComplete="given-name" onChange={(e) => set({ name: e.target.value })} /></Field>
         <fieldset><legend className="mb-3 text-sm font-semibold">Unidades</legend>
           <div className="flex gap-2">{(['kg', 'lb'] as const).map((u) => <Chip key={u} type="button" on={p.units === u} onClick={() => set({ units: u })}>{u === 'kg' ? 'Kilogramos' : 'Libras'}</Chip>)}</div></fieldset>
+        <fieldset><legend className="mb-1 text-sm font-semibold">Sexo <span className="font-normal text-mute">(opcional; solo afina la estimación de calorías)</span></legend>
+          <div className="mt-2 flex flex-wrap gap-2">{([['m', 'Hombre'], ['f', 'Mujer'], [undefined, 'Prefiero no decir']] as const).map(([k, l]) => <Chip key={l} type="button" on={p.sex === k} onClick={() => set({ sex: k })}>{l}</Chip>)}</div></fieldset>
         <div className="grid grid-cols-3 gap-3">
           <Field label="Edad"><input className={inputCls} type="number" inputMode="numeric" min={14} max={99} value={p.age ?? ''} onChange={(e) => set({ age: num(e.target.value) })} /></Field>
           <Field label="Estatura (cm)"><input className={inputCls} type="number" inputMode="numeric" min={100} max={230} value={p.heightCm ?? ''} onChange={(e) => set({ heightCm: num(e.target.value) })} /></Field>

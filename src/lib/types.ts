@@ -21,6 +21,7 @@ export interface Profile {
   equipment: Equip[]
   priority: Muscle[]
   limitations: string // texto libre, voluntario
+  sex?: 'm' | 'f'     // opcional; solo afina las fórmulas de gasto calórico y composición
   units: 'kg' | 'lb'
   theme: 'dark' | 'light'
   restSound: boolean
@@ -42,3 +43,11 @@ export interface Session {
   status: 'active' | 'done'; items: SessionItem[]; note: string
 }
 export interface BodyEntry { id: string; date: string; weightKg: number }
+
+export interface FoodEntry { name: string; kcal: number; p: number; c: number; f: number }
+/** Registro diario; `id` es la fecha local AAAA-MM-DD. */
+export interface DayLog { id: string; foods: FoodEntry[]; waterMl: number; sleepH: number | null; energy: number | null; recovery: number | null }
+/** Medidas en centímetros. */
+export interface Measure { id: string; date: string; neck?: number; chest?: number; waist?: number; hip?: number; arm?: number; thigh?: number; calf?: number }
+/** Foto de progreso: se guarda solo en este dispositivo y nunca se sincroniza. */
+export interface Photo { id: string; date: string; blob: Blob }

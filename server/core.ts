@@ -7,7 +7,7 @@ import { createHash, randomBytes, scrypt, timingSafeEqual } from 'node:crypto'
 export interface Db { query(sql: string, params?: unknown[]): Promise<any[]> }
 export interface Ctx { db: Db; ip: string; secure: boolean; now?: () => number }
 
-const KINDS = new Set(['profile', 'routine', 'session', 'body'])
+const KINDS = new Set(['profile', 'routine', 'session', 'body', 'day', 'measure'])
 const COOKIE = 'fp_session'
 const SESSION_DAYS = 30
 const MAX_BODY = 2_000_000, MAX_RECORD = 300_000, MAX_CHANGES = 1000, PULL_LIMIT = 2000

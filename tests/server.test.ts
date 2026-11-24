@@ -93,6 +93,10 @@ describe('sincronización', () => {
     const d = (await call('POST', '/api/sync', { since: c0, changes: [] }, a)).body.changes
     expect(d.find((c: any) => c.id === 'r1').data.name).toBe('editada'); expect(d.find((c: any) => c.id === 'r2')).toMatchObject({ deleted: true, data: null })
   })
+  it('acepta registro diario y medidas', async () => {
+    const r = await call('POST', '/api/sync', { since: 0, changes: [{ kind: 'day', id: '2026-11-24', data: { id: '2026-11-24', foods: [], waterMl: 500 }, deleted: false }, { kind: 'measure', id: 'm1', data: { id: 'm1', date: '2026-11-24', waist: 85 }, deleted: false }] }, a)
+    expect(r.status).toBe(200)
+  })
   it('valida tipo, id y tamaño', async () => {
     for (const bad of [{ kind: 'users', id: 'x', data: {} }, { kind: 'routine', id: '', data: {} }, { kind: 'routine', id: 'x', data: 'texto' }, { kind: 'routine', id: 'x', data: { big: 'a'.repeat(400_000) } }])
       expect((await call('POST', '/api/sync', { since: 0, changes: [bad] }, a)).status).toBe(400)

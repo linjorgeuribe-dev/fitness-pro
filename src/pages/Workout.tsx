@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowDown, ArrowUp, Check, ChevronDown, Info, Pause, Play, Plus, Repeat, StickyNote, Timer, Trash2, TrendingUp, X } from 'lucide-react'
-import { discardSession, finishSession, fmtW, fromDisp, saveSession, toDisp, useActive, useProfile, useSessions } from '../lib/store'
+import { db } from '../lib/db'
+import { discardSession, finishSession, fmtW, fromDisp, toDisp, useActive, useProfile, useSessions } from '../lib/store'
 import { exById, useCatalog } from '../lib/catalog'
 import { exerciseHistory, personalRecords } from '../engine/analytics'
 import { increment, suggest, type Suggestion } from '../engine/overload'
@@ -65,7 +66,8 @@ export default function Workout() {
   if (s === undefined) return <div className="p-8 text-center text-mute" role="status">Cargando…</div>
   if (s === null) return <div className="mx-auto max-w-xl p-6"><Empty title="No hay un entrenamiento en curso"><Button variant="primary" className="mt-3" onClick={() => nav('/train')}>Ir a Entrenar</Button></Empty></div>
 
-  const update = (fn: (d: Session) => void) => { const d: Session = structuredClone(s); fn(d); saveSession(d) }
+  // Lee el estado guardado dentro de una transacción: dos toques seguidos no se pisan entre sí.
+  const update = (fn: (d: Session) => void) => db.transaction('rw', db.sessions, async () => { const d = await db.sessions.get(s.id); if (!d || d.status !== 'active') return; fn(d); await db.sessions.put(d) })
   const elapsed = ((s.pausedAt ?? Date.now()) - s.start - s.pausedMs) / 1000
   const togglePause = () => update((d) => { if (d.pausedAt) { d.pausedMs += Date.now() - d.pausedAt; d.pausedAt = null } else d.pausedAt = Date.now() })
   const doneCount = s.items.reduce((a, it) => a + it.sets.filter((x) => x.done).length, 0)
@@ -203,7 +205,7 @@ export default function Workout() {
         {doneCount === 0 ? <p className="text-sm text-mute">No has completado ninguna serie. Marca al menos una o descarta el entrenamiento.</p>
           : <p className="text-sm text-mute">{doneCount} series completadas{totalCount - doneCount > 0 ? `; las ${totalCount - doneCount} pendientes no se guardarán` : ''}.</p>}
         <div className="mt-4 flex gap-3"><Button className="flex-1" onClick={() => setSheet(null)}>Seguir entrenando</Button>
-          <Button variant="primary" className="flex-1" disabled={doneCount === 0} onClick={async () => { const d = await finishSession(s); timer.stop(); nav(`/session/${d.id}`, { replace: true }) }}>Finalizar</Button></div>
+          <Button variant="primary" className="flex-1" disabled={doneCount === 0} onClick={async () => { const d = await finishSession((await db.sessions.get(s.id)) ?? s); timer.stop(); nav(`/session/${d.id}`, { replace: true }) }}>Finalizar</Button></div>
       </Sheet>
       <Sheet open={sheet?.t === 'discard'} onClose={() => setSheet(null)} title="¿Descartar entrenamiento?">
         <p className="text-sm text-mute">Se borrarán las series registradas en esta sesión. Esta acción no se puede deshacer.</p>

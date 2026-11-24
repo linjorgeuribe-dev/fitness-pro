@@ -8,6 +8,9 @@ import { Button, Card, Page, Stat } from '../components/ui'
 import { BodyMap } from '../components/BodyMap'
 import { MUSCLE } from '../lib/labels'
 import type { Muscle } from '../lib/types'
+import { useLiveQuery } from 'dexie-react-hooks'
+import { db, today } from '../lib/db'
+import { sumFoods } from '../engine/nutrition'
 
 export default function Home() {
   const profile = useProfile()!, routinesQ = useRoutinesMaybe(), routines = routinesQ ?? [], sessions = useSessions(), active = useActive()
@@ -23,6 +26,8 @@ export default function Home() {
   const alerts = useMemo(() => (ready ? imbalances(muscleSets(sessions.filter((s) => s.start >= Date.now() - 28 * DAY), exById)) : []), [sessions, ready])
   const top = (Object.entries(vol) as [Muscle, number][]).sort((a, b) => b[1] - a[1]).slice(0, 4)
   const hour = new Date().getHours()
+  const dayLog = useLiveQuery(() => db.days.get(today()), [])
+  const eaten = dayLog ? sumFoods(dayLog.foods) : null
 
   return (
     <Page title={`${hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches'}${profile.name ? ', ' + profile.name : ''}`}>
@@ -65,6 +70,11 @@ export default function Home() {
               <ul className="space-y-2 text-sm">{top.map(([m, v]) => <li key={m} className="flex justify-between gap-2"><span>{MUSCLE[m]}</span><span className="num text-mute">{Math.round(v)} series</span></li>)}</ul>
             </div>)}
         </Card>
+
+        <Link to="/cuerpo" className="flex min-h-16 items-center gap-3 rounded-card border border-line bg-surface p-4">
+          <div className="min-w-0 flex-1"><p className="font-extrabold">Nutrición y cuerpo</p>
+            <p className="text-sm text-mute">{eaten && (eaten.kcal || dayLog!.waterMl) ? `Hoy: ${Math.round(eaten.kcal)} kcal · ${Math.round(eaten.p)} g proteína · ${dayLog!.waterMl} ml agua` : 'Calorías, agua, sueño, medidas y fotos de progreso'}</p></div>
+          <ArrowRight className="shrink-0 text-mute" aria-hidden /></Link>
 
         {alerts.map((a) => (
           <Card key={a} className="flex gap-3"><TriangleAlert className="mt-0.5 shrink-0 text-amber" size={20} aria-hidden />
