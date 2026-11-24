@@ -18,7 +18,7 @@ export function loadInstructions() {
   return instr
 }
 export const exById = (id: string) => byId?.get(id)
-export const imgUrl = (id: string, i: 0 | 1) => `/media/ex/${id}/${i}.webp`
+export const imgUrl = (id: string, i: 0 | 1) => `/media/ex/${id}/${i}.webp?v=2` // v=2: fotos con tratamiento; cambia la URL para saltar la caché de un año
 
 export function useCatalog() {
   const [state, set] = useState<{ items: Exercise[]; error: string | null; ready: boolean }>({ items: [], error: null, ready: false })

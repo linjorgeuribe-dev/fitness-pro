@@ -10,4 +10,5 @@
 | 6 | Pesos almacenados en kg | Cambiar de unidad no corrompe el historial | guardar en unidad del usuario |
 | 7 | Gráficas SVG propias | ~2 kB frente a ~100 kB de una librería | Recharts |
 | 8 | Se omiten 8 ejercicios de la fuente sin instrucciones o sin 2 fotos | «Publicado» exige demostración gráfica | publicarlos incompletos |
+| 10 | Fotos con entorno atenuado (no borrado) | El recorte total dejaba a la persona flotando en máquinas y poleas; atenuar conserva el equipo y unifica el aspecto | Recorte sobre fondo liso; ilustración generada |
 | 9 | Animación = alternancia de 2 fotos reales (inicio/fin) | Es lo que la licencia y la exactitud permiten hoy | GIF/3D generados sin revisión biomecánica |

@@ -1,4 +1,7 @@
 # Cambios
+## 0.5.0 — 2026-11-24
+Todas las fotos de ejercicios con tratamiento uniforme: persona a color y entorno atenuado hacia el fondo de la app.
+
 ## 0.4.0 — 2026-11-24
 Crear rutina propia eligiendo ejercicios (selección múltiple), renombrar/agregar/quitar días, y borrar rutinas directamente desde la lista con confirmación.
 

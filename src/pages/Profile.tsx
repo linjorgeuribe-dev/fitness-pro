@@ -57,7 +57,7 @@ export default function ProfilePage() {
             <Button onClick={() => file.current?.click()}>Restaurar respaldo</Button><input ref={file} type="file" accept="application/json,.json" className="hidden" aria-label="Archivo de respaldo" onChange={(e) => onImport(e.target.files?.[0])} />
             <Button variant="danger" onClick={() => setConfirm(true)}>Borrar datos de este dispositivo</Button></div>
           {msg && <p className="mt-3 text-sm" role="status">{msg}</p>}</Card>
-        <Card><h2 className="font-extrabold">Acerca de</h2><p className="mt-1 text-sm text-mute">Fitness Pro v0.4. Catálogo y fotografías: free-exercise-db (dominio público, Unlicense). Las recomendaciones son orientativas y no sustituyen la valoración de un profesional de la salud o del ejercicio.</p></Card>
+        <Card><h2 className="font-extrabold">Acerca de</h2><p className="mt-1 text-sm text-mute">Fitness Pro v0.5. Catálogo y fotografías: free-exercise-db (dominio público, Unlicense). Las recomendaciones son orientativas y no sustituyen la valoración de un profesional de la salud o del ejercicio.</p></Card>
       </div>}
       <Sheet open={confirm} onClose={() => setConfirm(false)} title="¿Borrar los datos de este dispositivo?">
         <p className="text-sm text-mute">Se eliminarán tu perfil, rutinas e historial de este dispositivo{acct ? ' y se cerrará la sesión; lo ya sincronizado en tu cuenta no se toca' : '. No se puede deshacer; descarga un respaldo antes si quieres conservarlos'}.</p>

@@ -35,7 +35,7 @@ export default defineConfig({
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/media/ex/'),
             handler: 'CacheFirst',
-            options: { cacheName: 'ex-media', expiration: { maxEntries: 2000, maxAgeSeconds: 60 * 60 * 24 * 180 } },
+            options: { cacheName: 'ex-media-v2', expiration: { maxEntries: 2000, maxAgeSeconds: 60 * 60 * 24 * 180 } },
           },
         ],
       },
