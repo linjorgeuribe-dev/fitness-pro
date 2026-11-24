@@ -8,6 +8,8 @@ import { Button, Chip, Field, inputCls, cx } from '../components/ui'
 import { loadCatalog } from '../lib/catalog'
 import { generateRoutine } from '../engine/generator'
 import { lbToKg } from '../engine/calc'
+import { Sheet } from '../components/ui'
+import { SignInForm } from '../components/AccountCard'
 
 const LEVEL_HELP = { 1: 'Menos de 1 año entrenando con constancia', 2: '1 a 3 años con técnica sólida', 3: 'Más de 3 años y progresión planificada' }
 const PRIORITY: Muscle[] = ['chest', 'lats', 'shoulders', 'biceps', 'triceps', 'quadriceps', 'hamstrings', 'glutes', 'calves', 'abdominals']
@@ -72,6 +74,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(0)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
+  const [login, setLogin] = useState(false), [noProfile, setNoProfile] = useState(false)
   const set = (patch: Partial<Profile>) => setP((x) => ({ ...x, ...patch }))
   const finish = async () => {
     setBusy(true); setErr('')
@@ -89,7 +92,12 @@ export default function Onboarding() {
         <span className="ml-auto text-sm font-semibold text-mute" aria-live="polite">Paso {step + 1} de 4</span></div>
       <div className="mb-6 h-1.5 rounded-full bg-raised" aria-hidden><div className="h-full rounded-full bg-ember transition-all" style={{ width: `${(step + 1) * 25}%` }} /></div>
       <h1 className="mb-6 text-3xl font-extrabold tracking-tight">{TITLES[step]}</h1>
-      <div className="rise flex-1" key={step}><ProfileForm p={p} set={set} step={step} /></div>
+      <div className="rise flex-1" key={step}><ProfileForm p={p} set={set} step={step} />
+        {step === 0 && <button type="button" className="mt-4 min-h-11 text-sm font-semibold text-ember" onClick={() => setLogin(true)}>Ya tengo cuenta: iniciar sesión</button>}</div>
+      <Sheet open={login} onClose={() => setLogin(false)} title="Iniciar sesión">
+        {noProfile ? <p className="text-sm text-mute">Sesión iniciada, pero tu cuenta aún no tiene un perfil guardado. Cierra esta ventana y completa los 4 pasos; se sincronizará al terminar.</p>
+          : <SignInForm onDone={async () => { if (!(await db.profile.get('me'))) setNoProfile(true) }} />}
+      </Sheet>
       {err && <p className="mt-4 text-sm text-bad" role="alert">{err}</p>}
       <div className="sticky bottom-0 mt-6 flex gap-3 bg-bg py-3">
         {step > 0 && <Button size="lg" onClick={() => setStep(step - 1)} aria-label="Atrás"><ArrowLeft size={20} /></Button>}

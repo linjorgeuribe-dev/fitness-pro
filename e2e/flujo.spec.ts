@@ -155,7 +155,7 @@ test('herramientas, tema y borrado de datos', async ({ page }) => {
   await page.getByRole('button', { name: 'Claro' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
   await shot(page, '11-tema-claro')
-  await page.getByRole('button', { name: 'Borrar todos mis datos' }).click()
+  await page.getByRole('button', { name: 'Borrar datos de este dispositivo' }).click()
   await page.getByRole('button', { name: 'Borrar todo', exact: true }).click()
   await expect(page.getByRole('heading', { name: '¿Qué quieres lograr?' })).toBeVisible()
 })

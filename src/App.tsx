@@ -5,6 +5,7 @@ import { ProfileCtx, useActive, useProfileLive } from './lib/store'
 import { cx } from './components/ui'
 import Onboarding from './pages/Onboarding'
 import Home from './pages/Home'
+import { startAutoSync } from './lib/sync'
 
 const Explore = lazy(() => import('./pages/Explore'))
 const ExerciseDetail = lazy(() => import('./pages/ExerciseDetail'))
@@ -29,6 +30,7 @@ export default function App() {
   const loc = useLocation()
   useEffect(() => { document.documentElement.dataset.theme = profile?.theme ?? 'dark' }, [profile?.theme])
   useEffect(() => { window.scrollTo(0, 0) }, [loc.pathname])
+  useEffect(() => startAutoSync(), [])
 
   if (profile === undefined) return <div className="grid min-h-dvh place-items-center text-mute" role="status">Cargando…</div>
   if (profile === null) return <Onboarding />

@@ -10,5 +10,15 @@
 
 Tipos en `src/lib/types.ts`. Migraciones: nuevas `version(n).stores()` de Dexie. Respaldo/restauración: JSON completo desde Perfil → Ajustes y datos.
 
-## Servidor (fase 3, propuesto, no implementado)
-Postgres en Neon: `users`, `profiles`, `routines`, `routine_items`, `sessions`, `sets`, `body_entries`, `exercises`, `muscles`, `equipment`, `media`, `sources_licenses`, con RLS por `user_id`, `updated_at` para sincronización «última escritura gana» por registro y borrado lógico.
+## Servidor (Neon, proyecto `fitness-pro`, Postgres 18) — vigente
+Migración: `migrations/001_init.sql`.
+| Tabla | Contenido |
+|---|---|
+| `users` | `id`, `email` único, `pass_hash` (scrypt con sal) |
+| `auth_sessions` | hash SHA-256 del token de sesión, usuario, vencimiento (30 días) |
+| `records` | documento por `(user_id, kind, id)`: `data` jsonb, `deleted` (lápida), `rev` (secuencia global, cursor de sincronización) |
+| `auth_attempts` | intentos para limitar registro e inicio de sesión |
+
+`kind` ∈ profile, routine, session, body: los mismos objetos que guarda el dispositivo. Borrar un usuario elimina en cascada sesiones y registros.
+
+**Sincronización**: el cliente compara la huella de cada registro local con la última sincronizada, envía cambios y lápidas, y recibe lo que tenga `rev` mayor a su cursor. Conflicto: gana la última escritura por registro; al enlazar un dispositivo por primera vez gana el servidor. IndexedDB v2 añade `synced` (huellas) y `kv` (cuenta, cursor).

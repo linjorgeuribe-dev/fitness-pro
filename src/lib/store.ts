@@ -46,6 +46,7 @@ export async function finishSession(s: Session) {
     }
   })
   localStorage.removeItem('rest')
+  import('./sync').then((m) => m.syncNow()).catch(() => {}) // respaldo inmediato al terminar, si hay cuenta
   return done
 }
 export const discardSession = async (id: string) => { await db.sessions.delete(id); localStorage.removeItem('rest') }

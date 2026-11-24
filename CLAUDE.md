@@ -20,6 +20,8 @@ PWA local-first de entrenamiento en gimnasio. Idioma del producto y de la docume
 ## Mapa
 - `src/engine/` prescripción, generador, sobrecarga, analítica, cálculos
 - `src/lib/` tipos, Dexie (IndexedDB), catálogo, estado
+- `server/core.ts` API de cuentas/sincronización (pura, probada con PGlite) · `netlify/functions/api.ts` adaptador · `migrations/` SQL
+- `src/lib/sync.ts` sincronización del cliente
 - `src/pages/` pantallas · `src/components/` UI, mapa anatómico, gráficas
 - `public/data/` catálogo generado · `public/media/ex/` fotos WebP
 - Documentación en `docs/` (arquitectura, decisiones, datos, pruebas, pendientes)

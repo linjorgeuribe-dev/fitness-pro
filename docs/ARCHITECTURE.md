@@ -1,7 +1,7 @@
 # Arquitectura
 
 ## Resumen
-SPA React 19 + TypeScript + Vite 8, estilos con Tailwind 4, datos en IndexedDB (Dexie), PWA con Workbox (vite-plugin-pwa). Sin backend en la v0.1: **local-first**.
+SPA React 19 + TypeScript + Vite 8, estilos con Tailwind 4, datos en IndexedDB (Dexie), PWA con Workbox (vite-plugin-pwa). **Local-first**: el dispositivo es la fuente principal; el servidor (`server/core.ts`, desplegado como Netlify Function) solo guarda cuentas y una copia sincronizada.
 
 ```
 ┌────────────── Navegador / PWA instalada ──────────────┐
@@ -13,7 +13,7 @@ SPA React 19 + TypeScript + Vite 8, estilos con Tailwind 4, datos en IndexedDB (
 │ lib/catalog ──► /data/*.json + /media/ex/*.webp         │
 │ Service Worker: precache app+catálogo, CacheFirst fotos │
 └────────────────────────────────────────────────────────┘
-        (fase 3) sincronización opcional ──► Netlify Functions ──► Neon (Postgres)
+        sincronización opcional (con cuenta) ──► Netlify Function /api/* ──► Neon (Postgres)
 ```
 
 ## Por qué local-first

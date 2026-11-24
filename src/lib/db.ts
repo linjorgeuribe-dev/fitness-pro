@@ -6,9 +6,13 @@ class FitDB extends Dexie {
   routines!: Table<Routine, string>
   sessions!: Table<Session, string>
   body!: Table<BodyEntry, string>
+  synced!: Table<{ key: string; h: string }, string>
+  kv!: Table<{ key: string; value: unknown }, string>
   constructor() {
     super('fitness-pro')
     this.version(1).stores({ profile: 'id', routines: 'id, updatedAt', sessions: 'id, status, start', body: 'id, date' })
+    // v2: estado de sincronización (huella de lo último enviado/recibido por registro, y cursor)
+    this.version(2).stores({ synced: 'key', kv: 'key' })
   }
 }
 export const db = new FitDB()
@@ -36,7 +40,7 @@ export async function importAll(data: any) {
 }
 
 export async function wipeAll() {
-  await db.transaction('rw', db.profile, db.routines, db.sessions, db.body, async () => {
-    await Promise.all([db.profile.clear(), db.routines.clear(), db.sessions.clear(), db.body.clear()])
+  await db.transaction('rw', [db.profile, db.routines, db.sessions, db.body, db.synced, db.kv], async () => {
+    await Promise.all([db.profile.clear(), db.routines.clear(), db.sessions.clear(), db.body.clear(), db.synced.clear(), db.kv.clear()])
   })
 }

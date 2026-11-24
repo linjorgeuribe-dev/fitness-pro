@@ -6,5 +6,5 @@ export default defineConfig({
     { name: 'movil', use: { ...devices['Pixel 7'], channel: 'chrome' } },
     { name: 'escritorio', use: { viewport: { width: 1280, height: 800 }, channel: 'chrome' }, testMatch: /responsive/ },
   ],
-  webServer: { command: 'npm run preview', url: 'http://localhost:4173', reuseExistingServer: true, timeout: 30_000 },
+  webServer: { command: 'node scripts/local-server.mjs 4173', url: 'http://localhost:4173', reuseExistingServer: true, timeout: 30_000 },
 })

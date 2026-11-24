@@ -30,6 +30,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}', 'data/*.json'],
         maximumFileSizeToCacheInBytes: 4_000_000,
         navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/api\//],
         runtimeCaching: [
           {
             urlPattern: ({ url }) => url.pathname.startsWith('/media/ex/'),
@@ -42,4 +43,5 @@ export default defineConfig({
   ],
   build: { target: 'es2022' },
   test: { environment: 'node', include: ['tests/**/*.test.ts'] },
+  server: { proxy: { '/api': 'http://localhost:4173' } },
 } as any)

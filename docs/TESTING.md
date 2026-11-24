@@ -3,7 +3,8 @@
 | Tipo | Herramienta | Resultado |
 |---|---|---|
 | Unitarias (motores y catálogo) | Vitest | 34/34 |
-| End-to-end móvil (Pixel 7 emulado, Chrome) | Playwright | 6/6 |
+| API de cuentas y sincronización sobre Postgres embebido | Vitest + PGlite | 14/14 |
+| End-to-end móvil (Pixel 7 emulado, Chrome) | Playwright | 7/7 |
 | End-to-end escritorio 1280 px | Playwright | 1/1 |
 | Tipos | `tsc` estricto | sin errores |
 | Dependencias de producción | `npm audit --omit=dev` | 0 vulnerabilidades |
@@ -15,6 +16,7 @@
 3. Rutinas: generar, editar (persiste tras recarga), duplicar, eliminar.
 4. Herramientas (discos, 1RM), tema claro, borrar todos los datos.
 5. **Sin conexión**: la app abre, inicia entrenamiento, registra serie y muestra el catálogo.
+7. **Cuenta con dos dispositivos**: registrar en A, entrar en B desde el onboarding (contraseña incorrecta rechazada), B recibe perfil e historial, B borra una rutina y A lo recibe, la sesión sobrevive a recargar, cerrar sesión conserva datos locales, eliminar cuenta impide volver a entrar.
 6. Escritorio: navegación lateral, sin desborde horizontal en las 5 secciones.
 
 ## Lighthouse 13 (móvil simulado, build de producción en local)

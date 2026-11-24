@@ -4,6 +4,8 @@ import { useProfile } from '../lib/store'
 import type { Profile } from '../lib/types'
 import { Button, Card, Chip, Field, Page, Sheet, inputCls } from '../components/ui'
 import { ProfileForm } from './Onboarding'
+import { AccountCard } from '../components/AccountCard'
+import { useAccount } from '../lib/sync'
 import { download } from './RoutineView'
 import { e1rm, kgToLb, lbToKg, plates, PLATES_KG, PLATES_LB } from '../engine/calc'
 
@@ -36,6 +38,7 @@ export default function ProfilePage() {
   const [tab, setTab] = useState<'perfil' | 'herramientas' | 'datos'>('perfil')
   const [msg, setMsg] = useState(''), [confirm, setConfirm] = useState(false)
   const file = useRef<HTMLInputElement>(null)
+  const acct = useAccount()
   const set = (patch: Partial<Profile>) => { if (patch.equipment && patch.equipment.length === 0) return; db.profile.update('me', patch) }
   const onImport = async (f?: File) => { if (!f) return; try { await importAll(JSON.parse(await f.text())); setMsg('Respaldo restaurado.') } catch (e: any) { setMsg(e?.message?.startsWith('El archivo') ? e.message : 'No se pudo leer el archivo de respaldo.') } if (file.current) file.current.value = '' }
   return (
@@ -48,16 +51,17 @@ export default function ProfilePage() {
           <div className="mt-3 flex gap-2">{(['dark', 'light'] as const).map((t) => <Chip key={t} on={profile.theme === t} onClick={() => set({ theme: t })}>{t === 'dark' ? 'Oscuro' : 'Claro'}</Chip>)}</div>
           <label className="mt-4 flex min-h-12 items-center justify-between gap-3"><span><span className="font-semibold">Sonido al terminar el descanso</span><span className="block text-sm text-mute">También vibra en teléfonos compatibles.</span></span>
             <input type="checkbox" className="size-6 accent-[var(--ember)]" checked={profile.restSound} onChange={(e) => set({ restSound: e.target.checked })} /></label></Card>
-        <Card><h2 className="font-extrabold">Tus datos</h2><p className="mt-1 text-sm text-mute">Todo se guarda en este dispositivo; nada se envía a un servidor. Haz un respaldo antes de cambiar de teléfono o borrar datos del navegador.</p>
+        <AccountCard />
+        <Card><h2 className="font-extrabold">Tus datos</h2><p className="mt-1 text-sm text-mute">{acct ? 'Tus datos se guardan en este dispositivo y se sincronizan con tu cuenta.' : 'Todo se guarda en este dispositivo; sin cuenta, nada se envía a un servidor. Haz un respaldo antes de cambiar de teléfono o borrar datos del navegador.'}</p>
           <div className="mt-3 flex flex-wrap gap-2"><Button onClick={async () => download(`fitness-pro-respaldo-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(await exportAll()))}>Descargar respaldo</Button>
             <Button onClick={() => file.current?.click()}>Restaurar respaldo</Button><input ref={file} type="file" accept="application/json,.json" className="hidden" aria-label="Archivo de respaldo" onChange={(e) => onImport(e.target.files?.[0])} />
-            <Button variant="danger" onClick={() => setConfirm(true)}>Borrar todos mis datos</Button></div>
+            <Button variant="danger" onClick={() => setConfirm(true)}>Borrar datos de este dispositivo</Button></div>
           {msg && <p className="mt-3 text-sm" role="status">{msg}</p>}</Card>
-        <Card><h2 className="font-extrabold">Acerca de</h2><p className="mt-1 text-sm text-mute">Fitness Pro v0.1. Catálogo y fotografías: free-exercise-db (dominio público, Unlicense). Las recomendaciones son orientativas y no sustituyen la valoración de un profesional de la salud o del ejercicio.</p></Card>
+        <Card><h2 className="font-extrabold">Acerca de</h2><p className="mt-1 text-sm text-mute">Fitness Pro v0.2. Catálogo y fotografías: free-exercise-db (dominio público, Unlicense). Las recomendaciones son orientativas y no sustituyen la valoración de un profesional de la salud o del ejercicio.</p></Card>
       </div>}
-      <Sheet open={confirm} onClose={() => setConfirm(false)} title="¿Borrar todos tus datos?">
-        <p className="text-sm text-mute">Se eliminarán tu perfil, rutinas e historial de este dispositivo. No se puede deshacer; descarga un respaldo antes si quieres conservarlos.</p>
-        <div className="mt-4 flex gap-3"><Button className="flex-1" onClick={() => setConfirm(false)}>Cancelar</Button><Button variant="danger" className="flex-1" onClick={async () => { await wipeAll(); localStorage.clear(); location.href = '/' }}>Borrar todo</Button></div>
+      <Sheet open={confirm} onClose={() => setConfirm(false)} title="¿Borrar los datos de este dispositivo?">
+        <p className="text-sm text-mute">Se eliminarán tu perfil, rutinas e historial de este dispositivo{acct ? ' y se cerrará la sesión; lo ya sincronizado en tu cuenta no se toca' : '. No se puede deshacer; descarga un respaldo antes si quieres conservarlos'}.</p>
+        <div className="mt-4 flex gap-3"><Button className="flex-1" onClick={() => setConfirm(false)}>Cancelar</Button><Button variant="danger" className="flex-1" onClick={async () => { if (acct) await fetch('/api/logout', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}' }).catch(() => {}); await wipeAll(); localStorage.clear(); location.href = '/' }}>Borrar todo</Button></div>
       </Sheet>
     </Page>
   )
