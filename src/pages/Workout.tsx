@@ -196,10 +196,20 @@ export default function Workout() {
               if (done.length) d.items.splice(i, 1, { ...cur, sets: done }, next); else d.items[i] = next
             }); if (s.items[sheet.i].sets.some((x) => x.done)) setOpen(sheet.i + 1); setSheet(null) }} />)}</div></> })()}
       </Sheet>
-      <Sheet open={sheet?.t === 'add'} onClose={() => setSheet(null)} title="Agregar ejercicio">
-        <ExercisePicker onPick={(ex) => {
-          if (!s.items.some((i) => i.exId === ex.id)) { const t = prescribe(profile.goal, profile.level, ex.m === 'compound'); update((d) => { d.items.push({ exId: ex.id, target: t, note: '', sets: Array.from({ length: t.sets }, () => ({ w: null, r: null, rir: null, done: false })) }) }); setOpen(s.items.length) }
-          setSheet(null) }} />
+      <Sheet open={sheet?.t === 'add'} onClose={() => setSheet(null)} title="Agregar ejercicios">
+        <div className="sticky top-0 z-10 -mx-1 mb-3 flex items-center justify-between gap-3 rounded-2xl bg-raised px-4 py-2">
+          <p className="text-sm font-semibold" aria-live="polite">{s.items.length} {s.items.length === 1 ? 'ejercicio' : 'ejercicios'} en la sesión</p>
+          <Button size="sm" variant="primary" onClick={() => setSheet(null)}>Listo</Button>
+        </div>
+        <p className="mb-3 text-sm text-mute">Toca para agregar varios seguidos. Para quitar uno que aún no tiene series hechas, tócalo de nuevo.</p>
+        <ExercisePicker selected={new Set(s.items.map((i) => i.exId))} onPick={(ex) => {
+          const t = prescribe(profile.goal, profile.level, ex.m === 'compound')
+          update((d) => {
+            const i = d.items.findIndex((x) => x.exId === ex.id)
+            if (i < 0) d.items.push({ exId: ex.id, target: t, note: '', sets: Array.from({ length: t.sets }, () => ({ w: null, r: null, rir: null, done: false })) })
+            else if (!d.items[i].sets.some((x) => x.done)) d.items.splice(i, 1) // nunca se borra trabajo ya registrado
+          })
+        }} />
       </Sheet>
       <Sheet open={sheet?.t === 'finish'} onClose={() => setSheet(null)} title="¿Finalizar entrenamiento?">
         {doneCount === 0 ? <p className="text-sm text-mute">No has completado ninguna serie. Marca al menos una o descarta el entrenamiento.</p>

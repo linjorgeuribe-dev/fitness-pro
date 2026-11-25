@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Check, Search, SlidersHorizontal, X } from 'lucide-react'
 import { searchExercises, useCatalog } from '../lib/catalog'
@@ -19,14 +19,18 @@ export function ExerciseRow({ ex, onPick, right, picked }: { ex: Exercise; onPic
   return onPick ? <button type="button" className={cls} aria-pressed={picked} onClick={() => onPick(ex)}>{body}</button> : <Link to={`/explore/${encodeURIComponent(ex.id)}`} className={cls}>{body}</Link>
 }
 
+/** Al armar una rutina se suelen elegir varios ejercicios del mismo grupo: el selector recuerda músculo y filtros entre aperturas. */
+const pickerMemory: { muscle: Muscle | null; eq: Equip[]; lv: number | null; cat: string | null } = { muscle: null, eq: [], lv: null, cat: null }
+
 export function ExercisePicker({ onPick, initialMuscle, selected }: { onPick?: (ex: Exercise) => void; initialMuscle?: Muscle; selected?: Set<string> }) {
   const { items, error, ready } = useCatalog()
   const [params, setParams] = useSearchParams()
   const [q, setQ] = useState(onPick ? '' : params.get('q') ?? '')
-  const [muscle, setMuscle] = useState<Muscle | null>(initialMuscle ?? (onPick ? null : (params.get('m') as Muscle | null)))
-  const [eq, setEq] = useState<Equip[]>([])
-  const [lv, setLv] = useState<number | null>(null)
-  const [cat, setCat] = useState<string | null>(null)
+  const [muscle, setMuscle] = useState<Muscle | null>(initialMuscle ?? (onPick ? pickerMemory.muscle : (params.get('m') as Muscle | null)))
+  const [eq, setEq] = useState<Equip[]>(onPick ? pickerMemory.eq : [])
+  const [lv, setLv] = useState<number | null>(onPick ? pickerMemory.lv : null)
+  const [cat, setCat] = useState<string | null>(onPick ? pickerMemory.cat : null)
+  useEffect(() => { if (onPick) Object.assign(pickerMemory, { muscle, eq, lv, cat }) }, [onPick, muscle, eq, lv, cat])
   const [view, setView] = useState<'list' | 'map'>('list')
   const [filters, setFilters] = useState(false)
   const [limit, setLimit] = useState(30)

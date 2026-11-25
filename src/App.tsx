@@ -30,7 +30,11 @@ export default function App() {
   const active = useActive()
   const loc = useLocation()
   useEffect(() => { document.documentElement.dataset.theme = profile?.theme ?? 'dark' }, [profile?.theme])
-  useEffect(() => { window.scrollTo(0, 0) }, [loc.pathname])
+  useEffect(() => {
+    window.scrollTo(0, 0)
+    // Versión nueva que llegó durante un entrenamiento: se aplica al salir de esa pantalla.
+    if (loc.pathname !== '/workout' && sessionStorage.getItem('update-pending')) { sessionStorage.removeItem('update-pending'); location.reload() }
+  }, [loc.pathname])
   useEffect(() => startAutoSync(), [])
 
   if (profile === undefined) return <div className="grid min-h-dvh place-items-center text-mute" role="status">Cargando…</div>

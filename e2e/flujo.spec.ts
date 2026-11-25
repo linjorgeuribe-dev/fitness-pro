@@ -202,6 +202,25 @@ test('rutina propia: elegir ejercicios, editar días, entrenar y borrar desde la
   await dlg.locator('button.text-left[aria-pressed="true"]').click() // quita el hip thrust
   await expect(dlg.getByText('2 ejercicios elegidos')).toBeVisible()
   await shot(page, '16-elegir-ejercicios')
+  // Elegir por grupo muscular: el filtro se queda puesto mientras se agregan varios…
+  await dlg.getByLabel('Buscar ejercicio').fill('')
+  await dlg.locator('button.rounded-full', { hasText: /^Glúteos$/ }).first().click()
+  const total = await dlg.getByText(/^\d+ ejercicios$/).innerText()
+  await dlg.locator('button.text-left[aria-pressed="false"]').nth(0).click()
+  await expect(dlg.getByText('3 ejercicios elegidos')).toBeVisible()
+  await dlg.locator('button.text-left[aria-pressed="false"]').nth(0).click()
+  await expect(dlg.getByText('4 ejercicios elegidos')).toBeVisible()
+  await expect(dlg.getByText(/^\d+ ejercicios$/)).toHaveText(total)
+  await expect(dlg.locator('button.rounded-full[aria-pressed="true"]', { hasText: /^Glúteos$/ })).toHaveCount(1)
+  await dlg.locator('button.text-left[aria-pressed="true"]').nth(0).click()
+  await expect(dlg.getByText('3 ejercicios elegidos')).toBeVisible()
+  await dlg.locator('button.text-left[aria-pressed="true"]').nth(0).click()
+  await expect(dlg.getByText('2 ejercicios elegidos')).toBeVisible()
+  await dlg.getByRole('button', { name: 'Listo' }).click()
+  // …y sigue puesto al abrir el selector de otro día
+  await page.getByRole('button', { name: 'Agregar ejercicios' }).nth(1).click()
+  await expect(dlg.locator('button.rounded-full[aria-pressed="true"]', { hasText: /^Glúteos$/ })).toHaveCount(1)
+  await expect(dlg.getByText(/^\d+ ejercicios$/)).toHaveText(total)
   await dlg.getByRole('button', { name: 'Listo' }).click()
   await expect(page.getByText('Prensa de piernas')).toBeVisible()
   await expect(page.getByText('Hip thrust con barra')).toHaveCount(0)
@@ -231,4 +250,29 @@ test('rutina propia: elegir ejercicios, editar días, entrenar y borrar desde la
   await page.getByRole('dialog').getByRole('button', { name: 'Eliminar rutina' }).click()
   await expect(page.getByRole('link', { name: /Pierna y glúteo/ })).toHaveCount(0)
   await shot(page, '17-mis-rutinas')
+})
+
+test('entreno libre: agregar varios ejercicios seguidos sin que el selector se cierre', async ({ page }) => {
+  await onboard(page)
+  await page.getByRole('link', { name: 'Entrenar', exact: true }).click()
+  await page.getByRole('button', { name: 'Entreno libre' }).click()
+  await page.getByRole('button', { name: 'Agregar ejercicio' }).click()
+  const dlg = page.getByRole('dialog')
+  await dlg.locator('button.rounded-full', { hasText: /^Bíceps$/ }).first().click()
+  for (let i = 1; i <= 3; i++) { await dlg.locator('button.text-left[aria-pressed="false"]').nth(0).click(); await expect(dlg.getByText(new RegExp(`^${i} ejercicios? en la sesión$`))).toBeVisible() }
+  await expect(dlg.locator('button.rounded-full[aria-pressed="true"]', { hasText: /^Bíceps$/ })).toHaveCount(1)
+  await dlg.locator('button.text-left[aria-pressed="true"]').nth(0).click() // quitar uno sin series hechas
+  await expect(dlg.getByText('2 ejercicios en la sesión')).toBeVisible()
+  await dlg.getByRole('button', { name: 'Listo' }).click()
+  await expect(page.locator('section')).toHaveCount(2)
+  // Un ejercicio con series hechas no se quita al tocarlo de nuevo
+  await page.getByRole('button', { name: 'Completar serie 1' }).first().click()
+  await page.getByRole('button', { name: 'Saltar' }).click()
+  await page.getByRole('button', { name: 'Agregar ejercicio' }).click()
+  await dlg.locator('button.text-left[aria-pressed="true"]').nth(0).click() // tiene una serie hecha: se conserva
+  await page.waitForTimeout(300); await expect(dlg.getByText('2 ejercicios en la sesión')).toBeVisible()
+  await dlg.locator('button.text-left[aria-pressed="true"]').nth(1).click() // sin series: se quita
+  await expect(dlg.getByText('1 ejercicio en la sesión')).toBeVisible()
+  await dlg.getByRole('button', { name: 'Listo' }).click()
+  await expect(page.locator('section')).toHaveCount(1)
 })

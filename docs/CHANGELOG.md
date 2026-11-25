@@ -1,4 +1,7 @@
 # Cambios
+## 0.5.1 — 2026-11-25
+El selector de ejercicios recuerda músculo y filtros entre aperturas; en el entrenamiento en vivo se pueden agregar varios ejercicios seguidos sin que se cierre; las versiones nuevas se aplican solas al abrir la app.
+
 ## 0.5.0 — 2026-11-24
 Todas las fotos de ejercicios con tratamiento uniforme: persona a color y entorno atenuado hacia el fondo de la app.
 
