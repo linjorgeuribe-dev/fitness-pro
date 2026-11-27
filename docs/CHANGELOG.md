@@ -1,4 +1,10 @@
 # Cambios
+## 0.9.0 — 2026-11-27
+- **435 de 868 ejercicios con animación** (antes 331); en fuerza y powerlifting, 435 de 615.
+- Perfil: 24 plantillas nuevas (curls de muñeca con mano articulada, crunch con piernas elevadas, navaja, encogimiento sentado, press con impulso y thruster, press de pecho en polea de pie, pull through, glute-ham, hiperextensión inversa, peso muerto a una pierna, sentadilla búlgara, sentadilla de rodillas, sentadilla con salto, prensa de pantorrilla, patada de glúteo en cuatro puntos, buenos días sentado, drag curl, curls acostado y en banco inclinado boca abajo, entre otras).
+- Frente: aperturas inclinado al frente (tronco en escorzo), rotaciones interna/externa de hombro, desplante lateral, jalón alto sumo y variantes a un brazo.
+- Tabla `EXACT` de asignación por nombre exacto para variantes que comparten patrón; una prueba verifica que cada nombre exista en el catálogo.
+
 ## 0.8.0 — 2026-11-27
 - **Vista de frente y desde arriba** para el maniquí (`src/anim/front.tsx`): elevaciones laterales, encogimientos, aperturas con mancuernas y poleas, cruces de poleas, pec deck, aperturas posteriores, inclinaciones laterales, sentadilla plié, aductores/abductores y curl en polea alta. La leyenda indica la vista.
 - 12 plantillas de perfil nuevas: pullover, crunch inverso, crunch en polea, hiperextensión, remo invertido, remo con pecho apoyado, patada de glúteo en polea, curl femoral de pie, rueda abdominal, curl concentrado, press alternado y elevación frontal sobre la cabeza.

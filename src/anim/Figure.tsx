@@ -32,7 +32,7 @@ export function Figure({ pose: q, props, primary, secondary }: { pose: Pose; pro
       <Seg a={l.end} b={toe} w={7} c={far ? '#565c68' : '#9aa0ab'} />
     </g>
   )
-  const hand = q.arm.end, sole: V = [(q.leg.end[0] + q.toe[0]) / 2, (q.leg.end[1] + q.toe[1]) / 2]
+  const hand = q.grip, sole: V = [(q.leg.end[0] + q.toe[0]) / 2, (q.leg.end[1] + q.toe[1]) / 2]
   const fore = perp(q.arm.joint, q.arm.end)
   const prop = (p: Prop, i: number, layer: 'back' | 'front') => {
     if (p.t === 'bench' && layer === 'back') { const h = p.h ?? FLOOR - p.y; return <g key={i}><rect x={p.x} y={p.y} width={p.w} height={7} rx={3} fill={GEAR} /><rect x={p.x + 5} y={p.y + 7} width={4} height={h - 7} fill={GEAR2} /><rect x={p.x + p.w - 9} y={p.y + 7} width={4} height={h - 7} fill={GEAR2} /></g> }
@@ -64,6 +64,7 @@ export function Figure({ pose: q, props, primary, secondary }: { pose: Pose; pro
       {legEl(q.leg, q.toe, false)}
       {props.map((p, i) => prop(p, i, 'front'))}
       {armEl(q.arm, false)}
+      {q.grip !== q.arm.end && <Seg a={q.arm.end} b={q.grip} w={6.5} c={SKIN} />}
       <circle cx={q.shoulder[0].toFixed(1)} cy={q.shoulder[1].toFixed(1)} r={6.4} fill={col('shoulders') ?? SKIN} />
     </svg>
   )

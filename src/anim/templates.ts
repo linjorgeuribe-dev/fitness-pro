@@ -66,7 +66,7 @@ const T: Record<string, Build> = {
     props: [seat(96, 136, 50), { t: 'line', pts: [[102, 136], [94, 84]], w: 7 }], freeFeet: true }),
   deadlift: (x, n) => ({ cue: 'Barra pegada a las piernas, espalda neutra; empuja el piso y extiende cadera y rodillas a la vez.',
     a: { pelvis: [120, 128], torso: 120, arm: { u: 0, f: 0 }, leg: { foot: FEET } }, b: { pelvis: [150, 103], torso: 180, arm: { u: 3, f: 5 }, leg: { foot: FEET } },
-    props: isDb(x) ? [{ t: 'dumbbell', at: 'hand' }] : [{ t: 'barbell', at: 'hand', r: 15 }] }),
+    props: isDb(x) ? [{ t: 'dumbbell', at: 'hand' }] : x.eq === 'machine' ? [] : [{ t: 'barbell', at: 'hand', r: 15 }] }),
   hinge: (x, n) => { const gm = /good morning/.test(n); return { cue: gm ? 'Barra en la espalda alta; lleva la cadera atrás con rodillas casi fijas y espalda neutra.' : 'Cadera atrás, rodillas apenas flexionadas; baja la carga pegada a las piernas sin redondear la espalda.',
     a: { pelvis: [150, 103], torso: 180, arm: gm ? onBack : { u: 3, f: 5 }, leg: { foot: FEET } }, b: { pelvis: [126, 108], torso: 115, arm: gm ? onBack : { u: 0, f: 2 }, leg: { foot: FEET } },
     props: gm ? (isBar(x, n) ? [{ t: 'barbell', at: 'shoulder', off: [9, 1] }] : []) : isDb(x) ? [{ t: 'dumbbell', at: 'hand' }] : [{ t: 'barbell', at: 'hand', r: 13 }] } },
@@ -74,8 +74,8 @@ const T: Record<string, Build> = {
     a: { shoulder: [95, 127], torso: 226, arm: { hand: [-11, -43], side: 1, rel: true }, leg: { foot: [168, 175] } }, b: { shoulder: [95, 127], torso: 274, arm: { hand: [-11, -43], side: 1, rel: true }, leg: { foot: [168, 175] } },
     props: [seat(52, 132, 50), ...(bar ? [{ t: 'barbell', at: 'pelvis', off: [-11, 3] } as Prop] : [])] } },
   bridge: (x, n) => { const bar = isBar(x, n); return { cue: 'Hombros en el piso; sube la cadera apretando glúteos, sin arquear la zona lumbar.',
-    a: { shoulder: [80, 171], torso: 272, head: [63, 168], arm: bar ? { hand: [-11, -43], side: 1, rel: true } : { hand: [118, 174], side: 1 }, leg: { foot: [166, 175] } },
-    b: { shoulder: [80, 171], torso: 302, head: [63, 168], arm: bar ? { hand: [-11, -43], side: 1, rel: true } : { hand: [118, 174], side: 1 }, leg: { foot: [166, 175] } },
+    a: { shoulder: [80, 171], torso: 272, head: [63, 168], arm: bar ? { hand: [-11, -43], side: 1, rel: true } : { hand: [118, 174], side: 1 }, leg: { foot: [166, 175] }, ...(/single leg/.test(n) ? { legFar: { foot: [198, 160] as V, toe: 180 } } : {}) },
+    b: { shoulder: [80, 171], torso: 302, head: [63, 168], arm: bar ? { hand: [-11, -43], side: 1, rel: true } : { hand: [118, 174], side: 1 }, leg: { foot: [166, 175] }, ...(/single leg/.test(n) ? { legFar: { foot: [186, 120] as V, toe: 180 } } : {}) },
     props: bar ? [{ t: 'barbell', at: 'pelvis', off: [-11, 3] }] : [] } },
   calfStanding: (x, n) => { const g = loaded(x, n, hang); return { cue: 'Sube sobre la punta de los pies lo más alto posible; pausa arriba y baja el talón con control.',
     a: { pelvis: [150, 103], torso: 180, arm: g.arm, leg: { foot: [152, 175], toe: 90 } }, b: { pelvis: [151, 94], torso: 180, arm: g.arm, leg: { foot: [153, 166], toe: 53 } }, props: g.props, freeFeet: true } },
@@ -148,10 +148,10 @@ const T: Record<string, Build> = {
     a: { pelvis: [140, 103], torso: 172, arm: { u: 6, f: 118 }, leg: { foot: [142, 175] } }, b: { pelvis: [140, 103], torso: 172, arm: { u: 6, f: 10 }, leg: { foot: [142, 175] } }, props: [post(218, 22, 196), { t: 'cable', from: [196, 24] }] }),
   skullcrusher: (x, n) => ({ cue: 'Brazos casi verticales y quietos; flexiona solo el codo llevando la carga hacia la frente.',
     a: { pelvis: [150, 127], torso: 270, head: [88, 124], arm: { u: 188, f: 188 }, leg: { foot: [190, 175] } }, b: { pelvis: [150, 127], torso: 270, head: [88, 124], arm: { u: 196, f: 290 }, leg: { foot: [190, 175] } },
-    props: [seat(76, 133, 92), ...inHand(x, n, undefined, 8)] }),
+    props: [seat(76, 133, 92), ...inHand(x, n, [34, 150], 8)] }),
   overheadTriceps: (x, n) => { const s = /seated/.test(n); return { cue: 'Codos apuntando arriba y cerca de la cabeza; baja la carga detrás de la nuca y extiende.',
     a: { pelvis: s ? [130, 138] : STAND_LOW, torso: 180, arm: { u: 178, f: 290 }, leg: { foot: s ? [170, 175] : FEET } }, b: { pelvis: s ? [130, 138] : STAND_LOW, torso: 180, arm: { u: 178, f: 178 }, leg: { foot: s ? [170, 175] : FEET } },
-    props: [...(s ? [seat(108, 145, 44)] : []), ...inHand(x, n, undefined, 8)] } },
+    props: [...(s ? [seat(108, 145, 44)] : []), ...inHand(x, n, [92, 172], 8)] } },
   kickback: (x, n) => ({ cue: 'Torso inclinado y brazo paralelo al piso; extiende el codo hacia atrás sin mover el hombro.',
     a: { pelvis: [126, 108], torso: 112, arm: { u: -75, f: 0 }, leg: { foot: FEET } }, b: { pelvis: [126, 108], torso: 112, arm: { u: -75, f: -78 }, leg: { foot: FEET } }, props: inHand(x, n) }),
   crunch: () => ({ cue: 'Despega solo los hombros del piso contrayendo el abdomen; no jales el cuello.',
@@ -163,9 +163,12 @@ const T: Record<string, Build> = {
     props: [seat(76, 133, 92), ...inHand(x, n, undefined, 8)] } },
   reverseCrunch: () => ({ cue: 'Rodillas flexionadas; despega la cadera del piso enrollando la pelvis hacia el pecho, sin impulso de piernas.',
     a: { pelvis: [112, 170], torso: 272, head: [50, 168], arm: { hand: [100, 175], side: 1 }, leg: { foot: [158, 152], toe: 110 } }, b: { pelvis: [112, 170], torso: 272, head: [50, 168], arm: { hand: [100, 175], side: 1 }, leg: { foot: [106, 118], toe: 200 } }, props: [], freeFeet: true }),
-  cableCrunch: () => ({ cue: 'De rodillas con la cuerda junto a la cabeza; flexiona la columna llevando los codos hacia las rodillas, sin sentarte sobre los talones.',
-    a: { pelvis: [140, 138], torso: 165, arm: { hand: [-7, 13], side: -1, rel: true }, leg: { foot: [104, 174], toe: 270 } }, b: { pelvis: [140, 138], torso: 112, arm: { hand: [-7, 13], side: -1, rel: true }, leg: { foot: [104, 174], toe: 270 } },
-    props: [post(232, 22, 214), { t: 'cable', from: [214, 24] }] }),
+  cableCrunch: (x, n) => /standing/.test(n)
+    ? { cue: 'De pie frente a la polea alta con la cuerda junto a la cabeza; flexiona la columna hacia abajo sin doblar la cadera de más.',
+        a: { pelvis: [140, 104], torso: 176, arm: { hand: [-7, 13], side: -1, rel: true }, leg: { foot: [142, 175] } }, b: { pelvis: [140, 104], torso: 130, arm: { hand: [-7, 13], side: -1, rel: true }, leg: { foot: [142, 175] } }, props: [post(236, 14, 216), { t: 'cable', from: [216, 16] }] }
+    : { cue: 'De rodillas con la cuerda junto a la cabeza; flexiona la columna llevando los codos hacia las rodillas, sin sentarte sobre los talones.',
+        a: { pelvis: [140, 138], torso: 165, arm: { hand: [-7, 13], side: -1, rel: true }, leg: { foot: [104, 174], toe: 270 } }, b: { pelvis: [140, 138], torso: 112, arm: { hand: [-7, 13], side: -1, rel: true }, leg: { foot: [104, 174], toe: 270 } },
+        props: [post(232, 22, 214), { t: 'cable', from: [214, 24] }] },
   hyperextension: () => ({ cue: 'Cadera en el borde del cojín; baja el tronco con la espalda recta y sube solo hasta alinear el cuerpo, sin arquear de más.',
     a: { pelvis: [156, 110], torso: 62, arm: { hand: [-9, -12], side: -1, rel: true }, leg: { foot: [112, 165], toe: 20 } }, b: { pelvis: [156, 110], torso: 141, arm: { hand: [-9, -12], side: -1, rel: true }, leg: { foot: [112, 165], toe: 20 } },
     props: [{ t: 'line', pts: [[136, 148], [160, 120]], w: 9 }, { t: 'line', pts: [[150, 136], [150, 178]], w: 5 }, { t: 'line', pts: [[100, 178], [176, 178]], w: 5 }, { t: 'line', pts: [[104, 176], [104, 160]], w: 5 }] }),
@@ -175,22 +178,108 @@ const T: Record<string, Build> = {
   proneRow: (x, n) => ({ cue: 'Pecho apoyado en el banco inclinado; jala los codos hacia atrás juntando las escápulas y baja hasta extender.',
     a: { pelvis: [128, 122], torso: 130, arm: { u: 0, f: 2 }, leg: { foot: [86, 176] } }, b: { pelvis: [128, 122], torso: 130, arm: { u: -58, f: 24 }, leg: { foot: [86, 176] } },
     props: [{ t: 'line', pts: [[139, 133], [175, 103]], w: 8 }, { t: 'line', pts: [[158, 122], [158, 178]], w: 5 }, ...inHand(x, n, undefined, 9)] }),
-  kickback_glute: () => ({ cue: 'Sujeto al poste y torso firme; lleva la pierna hacia atrás apretando el glúteo, sin arquear la zona lumbar.',
+  kickback_glute: (x) => ({ cue: 'Sujeto al poste y torso firme; lleva la pierna hacia atrás apretando el glúteo, sin arquear la zona lumbar.',
     a: { pelvis: [140, 104], torso: 166, arm: { hand: [182, 92], side: -1 }, leg: { foot: [146, 172], toe: 90 }, legFar: { foot: [142, 175] } }, b: { pelvis: [140, 104], torso: 166, arm: { hand: [182, 92], side: -1 }, leg: { foot: [100, 150], toe: 40 }, legFar: { foot: [142, 175] } },
-    props: [post(186, 50), { t: 'cable', from: [186, 172], to: 'foot' }], freeFeet: true }),
+    props: [post(186, 50), ...(x.eq === 'cable' || x.eq === 'band' ? [{ t: 'cable', from: [186, 172], to: 'foot' } as Prop] : [])], freeFeet: true }),
   standingLegCurl: () => ({ cue: 'De pie y sujeto al aparato; flexiona la rodilla llevando el talón al glúteo sin mover el muslo.',
     a: { pelvis: [150, 103], torso: 176, arm: { hand: [190, 88], side: -1 }, leg: { foot: [151, 176], toe: 90 }, legFar: { foot: [152, 175] } }, b: { pelvis: [150, 103], torso: 176, arm: { hand: [190, 88], side: -1 }, leg: { foot: [117, 147], toe: 10 }, legFar: { foot: [152, 175] } },
     props: [post(194, 50)], freeFeet: true }),
   rollout: (x, n) => ({ cue: 'De rodillas; rueda al frente con el abdomen firme hasta donde controles la espalda y regresa sin hundir la zona lumbar.',
     a: { pelvis: [112, 137], torso: 115, arm: { hand: [160, 167], side: -1 }, leg: { foot: [84, 174], toe: 270 } }, b: { pelvis: [138, 146], torso: 100, arm: { hand: [222, 167], side: -1 }, leg: { foot: [84, 174], toe: 270 } },
     props: [{ t: 'barbell', at: 'hand', r: 12 }] }),
-  concentrationCurl: (x, n) => ({ cue: 'Sentado, codo apoyado en la cara interna del muslo; sube girando la muñeca y baja hasta casi extender.',
-    a: { pelvis: [130, 138], torso: 152, arm: { u: 6, f: 14 }, leg: { foot: [170, 175] } }, b: { pelvis: [130, 138], torso: 152, arm: { u: 6, f: 150 }, leg: { foot: [170, 175] } }, props: [seat(108, 145, 44), ...inHand(x, n, undefined, 8)] }),
+  concentrationCurl: (x, n) => /standing/.test(n)
+    ? { cue: 'Torso inclinado y brazo colgando en vertical; flexiona el codo sin balancear el hombro y baja hasta casi extender.',
+        a: { pelvis: [126, 108], torso: 110, arm: { u: 0, f: 6 }, leg: { foot: FEET } }, b: { pelvis: [126, 108], torso: 110, arm: { u: 0, f: 150 }, leg: { foot: FEET } }, props: inHand(x, n, undefined, 8) }
+    : { cue: 'Sentado, codo apoyado en la cara interna del muslo; sube girando la muñeca y baja hasta casi extender.',
+        a: { pelvis: [130, 138], torso: 152, arm: { u: 6, f: 14 }, leg: { foot: [170, 175] } }, b: { pelvis: [130, 138], torso: 152, arm: { u: 6, f: 150 }, leg: { foot: [170, 175] } }, props: [seat(108, 145, 44), ...inHand(x, n, undefined, 8)] },
   altPress: (x, n) => ({ cue: 'Empuja un brazo en vertical mientras el otro espera a la altura del hombro; alterna sin inclinar el tronco.',
     a: { pelvis: STAND_LOW, torso: 180, arm: { u: 176, f: 180 }, armFar: { u: 36, f: 180 }, leg: { foot: FEET } }, b: { pelvis: STAND_LOW, torso: 180, arm: { u: 36, f: 180 }, armFar: { u: 176, f: 180 }, leg: { foot: FEET } }, props: inHand(x, n) }),
+  tuckCrunch: () => ({ cue: 'Cadera y rodillas a 90°; despega los hombros del piso contrayendo el abdomen, sin balancear las piernas.',
+    a: { pelvis: [150, 170], torso: 272, arm: { hand: [3, 15], side: -1, rel: true }, leg: { foot: [186, 132], toe: 180 } }, b: { pelvis: [150, 170], torso: 248, arm: { hand: [3, 15], side: -1, rel: true }, leg: { foot: [186, 132], toe: 180 } }, props: [] }),
+  vUp: (x, n) => { const tuck = /cocoon/.test(n); return { cue: tuck ? 'Desde estirado, lleva las rodillas al pecho mientras subes el torso; regresa sin apoyar los pies.' : 'Sube piernas y torso a la vez hasta tocar las puntas de los pies; baja con control sin desplomarte.',
+    a: { pelvis: [150, 170], torso: 272, arm: { u: 268, f: 268 }, leg: { foot: [222, 171], toe: 180 } }, b: { pelvis: [150, 170], torso: tuck ? 244 : 232, arm: tuck ? { u: 120, f: 110 } : { u: 150, f: 150 }, leg: { foot: tuck ? [178, 140] : [196, 114], toe: tuck ? 150 : 230 } }, props: [], freeFeet: true } },
+  seatedTuck: () => ({ cue: 'Sentado en el borde y recargado hacia atrás; lleva las rodillas al pecho acercando el torso y extiende sin tocar el piso.',
+    a: { pelvis: [124, 138], torso: 205, arm: { hand: [106, 142], side: 1 }, leg: { foot: [194, 150], toe: 110 } }, b: { pelvis: [124, 138], torso: 196, arm: { hand: [106, 142], side: 1 }, leg: { foot: [158, 132], toe: 110 } },
+    props: [seat(92, 145, 50)], freeFeet: true }),
+  seatedCrunch: (x) => ({ cue: 'Sentado y con la cadera fija; flexiona la columna llevando el pecho hacia la pelvis y regresa lento.',
+    a: { pelvis: [130, 138], torso: 182, arm: { hand: [-7, 13], side: -1, rel: true }, leg: { foot: [170, 175] } }, b: { pelvis: [130, 138], torso: 140, arm: { hand: [-7, 13], side: -1, rel: true }, leg: { foot: [170, 175] } },
+    props: [seat(108, 145, 44), ...(x.eq === 'cable' ? [post(92, 22, 110), { t: 'cable', from: [110, 24] } as Prop] : [])] }),
+  inclineFrontRaise: (x, n) => ({ cue: 'Recargado en el banco inclinado; sube los brazos casi rectos al frente hasta la altura de los ojos y baja lento.',
+    a: { pelvis: [140, 142], torso: 205, arm: { u: -4, f: 2 }, leg: { foot: [176, 175] } }, b: { pelvis: [140, 142], torso: 205, arm: { u: 96, f: 100 }, leg: { foot: [176, 175] } },
+    props: [{ t: 'line', pts: [[138, 157], [106, 95]], w: 7 }, { t: 'line', pts: [[138, 153], [168, 153]], w: 7 }, { t: 'line', pts: [[150, 157], [150, 178]], w: 4 }, ...inHand(x, n)] }),
+  pushPress: (x, n) => { const th = /thruster/.test(n); return { cue: th ? 'Baja a sentadilla con la carga en los hombros y, al subir, aprovecha el impulso para empujar arriba en un solo movimiento.' : 'Flexiona un poco las rodillas y extiéndelas con fuerza para ayudar a empujar la carga sobre la cabeza.',
+    a: { pelvis: th ? [130, 146] : [143, 121], torso: th ? 158 : 177, arm: { u: 34, f: 176 }, leg: { foot: FEET } }, b: { pelvis: STAND_LOW, torso: 180, arm: { u: 176, f: 180 }, leg: { foot: FEET } }, props: inHand(x, n) } },
+  standingPress: () => ({ cue: 'De espaldas a la polea y abdomen firme; empuja al frente hasta extender los brazos y regresa sin que el cable te jale.',
+    a: { pelvis: [140, 104], torso: 174, arm: { u: -25, f: 95 }, leg: { foot: [142, 175] } }, b: { pelvis: [140, 104], torso: 174, arm: { u: 88, f: 92 }, leg: { foot: [142, 175] } }, props: [post(66, 56), { t: 'cable', from: [66, 70] }] }),
+  svend: () => ({ cue: 'Aprieta los discos entre las palmas a la altura del pecho; extiende los brazos al frente sin soltar la presión y regresa.',
+    a: { pelvis: STAND, torso: 180, arm: { u: 25, f: 150 }, leg: { foot: FEET } }, b: { pelvis: STAND, torso: 180, arm: { u: 86, f: 92 }, leg: { foot: FEET } }, props: [{ t: 'barbell', at: 'hand', r: 8 }] }),
+  pullThrough: () => ({ cue: 'De espaldas a la polea baja, cuerda entre las piernas; lleva la cadera atrás con la espalda neutra y extiéndela apretando los glúteos.',
+    a: { pelvis: [150, 103], torso: 180, arm: { hand: [4, -49], side: -1, rel: true }, leg: { foot: FEET } }, b: { pelvis: [126, 108], torso: 115, arm: { hand: [-24, -42], side: -1, rel: true }, leg: { foot: FEET } }, props: [post(52, 150), { t: 'cable', from: [52, 168] }] }),
+  gluteHam: () => ({ cue: 'Tobillos sujetos y cuerpo en línea de rodilla a cabeza; baja al frente frenando con los isquiotibiales y regresa.',
+    a: { pelvis: [120, 136], torso: 180, arm: { hand: [-12, -8], side: -1, rel: true }, leg: { foot: [84, 174], toe: 270 } }, b: { pelvis: [154.4, 158], torso: 100, arm: { hand: [-12, -8], side: -1, rel: true }, leg: { foot: [84, 174], toe: 270 } }, props: [{ t: 'line', pts: [[78, 166], [78, 178]], w: 6 }] }),
+  reverseHyper: () => ({ cue: 'Torso apoyado y sujeto al banco; sube las piernas hasta alinearlas con el cuerpo apretando glúteos, sin impulso.',
+    a: { pelvis: [130, 105], torso: 90, arm: { hand: [172, 128], side: 1 }, leg: { foot: [124, 174], toe: 250 } }, b: { pelvis: [130, 105], torso: 90, arm: { hand: [172, 128], side: 1 }, leg: { foot: [58, 104], toe: 360 } },
+    props: [seat(126, 114, 72)], freeFeet: true }),
+  singleLegDeadlift: (x, n) => ({ cue: 'Apoyado en una pierna con la rodilla apenas flexionada; inclina el torso y sube la otra pierna en línea con la espalda.',
+    a: { pelvis: STAND, torso: 180, arm: { u: 2, f: 3 }, leg: { foot: FEET }, legFar: { foot: [150, 175], toe: 90 } }, b: { pelvis: [146, 106], torso: 100, arm: { u: 0, f: 0 }, leg: { foot: FEET }, legFar: { foot: [74, 100], toe: -10 } }, props: inHand(x, n, undefined, 9) }),
+  bulgarian: (x, n) => { const g = loaded(x, n, hang); return { cue: 'Pie de atrás apoyado en el banco; baja en vertical cargando el peso en la pierna de adelante, con el torso erguido.',
+    a: { pelvis: [142, 110], torso: 180, arm: g.arm, leg: { foot: [172, 175] }, legFar: { foot: [92, 140], toe: 300 } }, b: { pelvis: [138, 138], torso: 176, arm: g.arm, leg: { foot: [172, 175] }, legFar: { foot: [92, 140], toe: 300 } },
+    props: [seat(60, 148, 44), ...g.props] } },
+  kneelingSquat: () => ({ cue: 'De rodillas con la barra en la espalda; siéntate hacia los talones y sube extendiendo la cadera, apretando glúteos.',
+    a: { pelvis: [94, 144], torso: 166, arm: onBack, leg: { foot: [84, 174], toe: 270 } }, b: { pelvis: [120, 136], torso: 178, arm: onBack, leg: { foot: [84, 174], toe: 270 } }, props: [{ t: 'barbell', at: 'shoulder', off: [9, 1] }] }),
+  jumpSquat: (x, n) => { const g = loaded(x, n, { u: 10, f: 14 }); return { cue: 'Baja a sentadilla y salta en vertical extendiendo cadera, rodillas y tobillos; cae suave y enlaza la siguiente.',
+    a: { pelvis: [127, 143], torso: 146, arm: g.props.length ? g.arm : { u: 40, f: 60 }, leg: { foot: FEET, toe: 90 } }, b: { pelvis: [150, 84], torso: 180, arm: g.arm, leg: { foot: [152, 157], toe: 30 } }, props: g.props, freeFeet: true } },
+  calfPress: () => ({ cue: 'Solo la punta del pie en la plataforma y rodillas casi extendidas; empuja con los tobillos y baja estirando la pantorrilla.',
+    a: { pelvis: [95, 150], torso: 228, arm: { hand: [97, 151], side: -1 }, leg: { foot: [149, 106], toe: 226 } }, b: { pelvis: [95, 150], torso: 228, arm: { hand: [97, 151], side: -1 }, leg: { foot: [150.5, 104.8], toe: 200 } },
+    props: [{ t: 'line', pts: [[108, 163], [58, 116]], w: 9 }, { t: 'line', pts: [[84, 168], [120, 168]], w: 9 }, { t: 'line', pts: [[78, 177], [222, 177]], w: 5 }, { t: 'line', pts: [[222, 177], [196, 70]], w: 5 }, { t: 'plate', len: 34 }], freeFeet: true }),
+  donkeyKick: () => ({ cue: 'En cuatro puntos con el abdomen firme; sube una pierna flexionada llevando la planta del pie al techo, sin arquear la espalda.',
+    a: { pelvis: [130, 132], torso: 95, arm: { hand: [176, 176], side: -1 }, leg: { foot: [96, 172], toe: 270 }, legFar: { foot: [94, 172], toe: 270 } }, b: { pelvis: [130, 132], torso: 95, arm: { hand: [176, 176], side: -1 }, leg: { foot: [92, 98], toe: 270 }, legFar: { foot: [94, 172], toe: 270 } }, props: [], freeFeet: true }),
+  seatedGoodMorning: () => ({ cue: 'Sentado con la barra en la espalda alta; inclina el torso desde la cadera con la espalda neutra y regresa.',
+    a: { pelvis: [130, 138], torso: 180, arm: onBack, leg: { foot: [170, 175] } }, b: { pelvis: [130, 138], torso: 114, arm: onBack, leg: { foot: [170, 175] } }, props: [seat(108, 145, 44), { t: 'barbell', at: 'shoulder', off: [9, 1] }] }),
+  dragCurl: (x, n) => ({ cue: 'Sube la barra pegada al cuerpo llevando los codos hacia atrás; no la separes del torso.',
+    a: { pelvis: STAND, torso: 180, arm: { hand: [-6, -49], side: 1, rel: true }, leg: { foot: FEET } }, b: { pelvis: STAND, torso: 180, arm: { hand: [-9, -16], side: 1, rel: true }, leg: { foot: FEET } }, props: inHand(x, n, undefined, 10) }),
+  proneCurl: (x, n) => ({ cue: 'Pecho apoyado en el banco inclinado y brazos colgando; flexiona los codos sin moverlos hacia atrás.',
+    a: { pelvis: [128, 122], torso: 130, arm: { u: 0, f: 2 }, leg: { foot: [86, 176] } }, b: { pelvis: [128, 122], torso: 130, arm: { u: 2, f: 150 }, leg: { foot: [86, 176] } },
+    props: [{ t: 'line', pts: [[139, 133], [175, 103]], w: 8 }, { t: 'line', pts: [[158, 122], [158, 178]], w: 5 }, ...inHand(x, n, undefined, 9)] }),
+  lyingCurl: (x, n) => {
+    if (/high pulley/.test(n)) return { cue: 'Acostado bajo la polea alta con los brazos verticales; flexiona solo los codos llevando la barra hacia la frente.',
+      a: { pelvis: [150, 127], torso: 270, head: [88, 124], arm: { u: 182, f: 184 }, leg: { foot: [190, 175] } }, b: { pelvis: [150, 127], torso: 270, head: [88, 124], arm: { u: 182, f: 296 }, leg: { foot: [190, 175] } }, props: [seat(76, 133, 92), post(36, 22, 70), { t: 'cable', from: [70, 24] }] }
+    if (x.eq === 'cable') return { cue: 'Acostado con los pies hacia la polea baja y los brazos pegados al cuerpo; flexiona los codos sin despegarlos del piso.',
+      a: { pelvis: [150, 170], torso: 272, head: [86, 168], arm: { u: 92, f: 94 }, leg: { foot: [222, 172], toe: 180 } }, b: { pelvis: [150, 170], torso: 272, head: [86, 168], arm: { u: 92, f: 212 }, leg: { foot: [222, 172], toe: 180 } }, props: [post(252, 140), { t: 'cable', from: [252, 156] }] }
+    return { cue: 'Acostado en el banco con los brazos colgando a los lados; flexiona los codos sin subirlos.',
+      a: { pelvis: [150, 127], torso: 270, head: [88, 124], arm: { u: 8, f: 4 }, leg: { foot: [190, 175] } }, b: { pelvis: [150, 127], torso: 270, head: [88, 124], arm: { u: 8, f: 150 }, leg: { foot: [190, 175] } }, props: [seat(76, 133, 92), ...inHand(x, n)] }
+  },
+  wristCurl: (x, n) => {
+    const cue = 'Antebrazos apoyados y quietos; mueve solo la muñeca en todo su recorrido, bajando lento.'
+    if (/behind the back/.test(n)) return { cue: 'Barra detrás del cuerpo con los brazos rectos; flexiona solo las muñecas hacia arriba y baja lento.',
+      a: { pelvis: STAND, torso: 180, arm: { u: -8, f: -4 }, wrist: 0, leg: { foot: FEET } }, b: { pelvis: STAND, torso: 180, arm: { u: -8, f: -4 }, wrist: -80, leg: { foot: FEET } }, props: inHand(x, n, undefined, 8) }
+    return { cue, a: { pelvis: [130, 138], torso: 150, arm: { u: -5, f: 88 }, wrist: 50, leg: { foot: [170, 175] } }, b: { pelvis: [130, 138], torso: 150, arm: { u: -5, f: 88 }, wrist: 132, leg: { foot: [170, 175] } },
+      props: [seat(108, 145, 44), ...inHand(x, n, [236, 172], 8)] }
+  },
   legRaise: () => ({ cue: 'Zona lumbar pegada al apoyo; sube las piernas casi rectas y bájalas sin tocar el piso.',
     a: { pelvis: [112, 170], torso: 272, head: [50, 168], arm: { hand: [100, 175], side: 1 }, leg: { foot: [184, 170], toe: 150 } }, b: { pelvis: [112, 170], torso: 272, head: [50, 168], arm: { hand: [100, 175], side: 1 }, leg: { foot: [118, 98], toe: 250 } }, props: [], freeFeet: true }),
 }
+
+/** Asignaciones por nombre exacto: variantes que comparten patrón con una plantilla pero que las reglas generales excluyen. */
+const EXACT: Record<string, string> = Object.fromEntries(Object.entries({
+  legExtension: ['single-leg leg extension'], calfSeated: ['dumbbell seated one-leg calf raise'], calfStanding: ['rocking standing calf raise'], calfPress: ['calf press', 'calf press on the leg press machine'],
+  bridge: ['single leg glute bridge'], dips: ['ring dips'], stepUp: ['step-up with knee raise'], squat: ['chair squat', 'squat with plate movers'], deadlift: ['leverage deadlift'],
+  bench: ['board press', 'one arm floor press', 'one-arm kettlebell floor press', 'incline dumbbell bench with palms facing in'], pullover: ['wide-grip decline barbell pullover'],
+  hinge: ['good morning off pins', 'hanging bar good morning', 'band good morning (pull through)'], pullThrough: ['pull through'], seatedGoodMorning: ['seated good mornings'],
+  skullcrusher: ['cable lying triceps extension', 'incline barbell triceps extension', 'dumbbell tricep extension -pronated grip', 'one arm pronated dumbbell triceps extension', 'one arm supinated dumbbell triceps extension'],
+  overheadTriceps: ['low cable triceps extension', 'speed band overhead triceps', 'standing low-pulley one-arm triceps extension'], pushdown: ['cable one arm tricep extension'],
+  curl: ['cross body hammer curl'], inclineCurl: ['barbell curls lying against an incline'], preacherCurl: ['standing one-arm dumbbell curl over incline bench'], dragCurl: ['drag curl'], proneCurl: ['dumbbell prone incline curl'],
+  lyingCurl: ['lying supine dumbbell curl', 'lying cable curl', 'lying close-grip bar curl on high pulley'], concentrationCurl: ['standing concentration curl'],
+  pulldown: ['one arm lat pulldown'], pullup: ['gironda sternum chins'], bentRow: ['barbell rear delt row', 'straight bar bench mid rows'], proneRow: ['lying cambered barbell row'],
+  situp: ['janda sit-up', 'weighted sit-ups - with bands'], legRaise: ['bottoms up'], reverseCrunch: ['cable reverse crunch'], tuckCrunch: ['tuck crunch'], vUp: ['jackknife sit-up', 'cocoons'],
+  seatedTuck: ['seated leg tucks', 'seated flat bench leg pull-in'], seatedCrunch: ['ab crunch machine', 'cable seated crunch'], cableCrunch: ['standing rope crunch'],
+  frontRaise: ['single dumbbell raise'], inclineFrontRaise: ['front incline dumbbell raise'], altPress: ['kettlebell seesaw press'], pushPress: ['double kettlebell push press', 'one-arm kettlebell push press', 'kettlebell thruster'],
+  standingPress: ['standing cable chest press'], svend: ['svend press'], kickback_glute: ['leg lift'], donkeyKick: ['glute kickback'], gluteHam: ['glute ham raise', 'natural glute ham raise', 'floor glute-ham raise'],
+  reverseHyper: ['reverse hyperextension'], singleLegDeadlift: ['kettlebell one-legged deadlift'], bulgarian: ['one leg barbell squat', 'smith single-leg split squat', 'suspended split squat'], kneelingSquat: ['kneeling squat'],
+  jumpSquat: ['freehand jump squat', 'weighted jump squat'],
+  wristCurl: ['cable wrist curl', 'finger curls', 'palms-down dumbbell wrist curl over a bench', 'palms-down wrist curl over a bench', 'palms-up barbell wrist curl over a bench', 'palms-up dumbbell wrist curl over a bench', 'seated dumbbell palms-down wrist curl', 'seated dumbbell palms-up wrist curl', 'seated one-arm dumbbell palms-down wrist curl', 'seated one-arm dumbbell palms-up wrist curl', 'seated palm-up barbell wrist curl', 'seated palms-down barbell wrist curl', 'seated two-arm palms-up low-pulley wrist curl', 'standing palms-up barbell behind the back wrist curl'],
+}).flatMap(([t, names]) => names.map((nm) => [nm, t])))
+export const EXACT_NAMES = Object.keys(EXACT)
 
 const has = (n: string, re: RegExp) => re.test(n)
 /** Variantes que la vista de perfil no puede representar bien o cuyo patrón es distinto: se quedan con foto. */
@@ -199,6 +288,7 @@ const SKIP = /one[- ]leg|single[- ]leg|pistol|jump|walk(?!ing lunge)|carry|throw
 export function templateFor(x: Exercise): string | null {
   if (x.c !== 'strength' && x.c !== 'powerlifting') return null
   const n = x.e.toLowerCase(), p = x.p[0]
+  if (EXACT[n]) return EXACT[n]
   const legs0 = ['quadriceps', 'glutes', 'hamstrings'].includes(p)
   if (legs0 && /^front squat \(clean grip\)$/.test(n)) return 'squatFront' // «clean grip» no es una cargada
   if (/^one-legged cable kickback$|^hip extension with bands$/.test(n)) return 'kickback_glute'

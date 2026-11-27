@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MOVES, type Move } from '../src/anim/moves'
-import { buildMove, templateFor, TEMPLATE_NAMES } from '../src/anim/templates'
+import { buildMove, templateFor, TEMPLATE_NAMES, EXACT_NAMES } from '../src/anim/templates'
 import { FLOOR, LEN, angleAt, dist, mix, phase, solve, type Limb } from '../src/anim/rig'
 import { Figure } from '../src/anim/Figure'
 import { FigureFront, FRONT_NAMES, buildFront, frontFor, mixFront, solveFront, type FL } from '../src/anim/front'
@@ -24,22 +24,24 @@ describe('animaciones esquemáticas', () => {
   it('cobertura: cada plantilla se usa y la asignación es estable', () => {
     const used = new Set(catalog.map(templateFor).filter(Boolean))
     for (const t of TEMPLATE_NAMES) expect(used.has(t), t).toBe(true)
+    // Cada nombre exacto existe en el catálogo (si cambia el catálogo, la tabla no queda apuntando a nada)
+    const names = new Set(catalog.map((x) => x.e.toLowerCase())); for (const nm of EXACT_NAMES) expect(names.has(nm), nm).toBe(true)
     const n = catalog.filter((x) => MOVES[x.id] ?? buildMove(x) ?? buildFront(x)).length
     writeFileSync('/tmp/anim-count.txt', String(n))
-    expect(n).toBeGreaterThanOrEqual(300)
+    expect(n).toBeGreaterThanOrEqual(430)
     // Lo que no es fuerza (estiramientos, pliometría, cardio, halterofilia, strongman) nunca recibe animación
     for (const x of catalog) if (x.c !== 'strength' && x.c !== 'powerlifting') expect(buildMove(x), x.id).toBeNull()
     // Casos que NO deben confundirse con su plantilla vecina
     const t = (id: string) => templateFor(by.get(id)!)
     expect(t('Side_Lateral_Raise')).toBeNull(); expect(t('Dumbbell_Flyes')).toBeNull(); expect(t('Cable_Crossover')).toBeNull()
-    expect(t('Leg_Press')).toBe('legPress'); expect(t('Calf_Press_On_The_Leg_Press_Machine')).toBeNull()
-    expect(t('Romanian_Deadlift')).toBe('hinge'); expect(t('Barbell_Deadlift')).toBe('deadlift'); expect(t('Kettlebell_One-Legged_Deadlift')).toBeNull()
+    expect(t('Leg_Press')).toBe('legPress'); expect(t('Calf_Press_On_The_Leg_Press_Machine')).toBe('calfPress')
+    expect(t('Romanian_Deadlift')).toBe('hinge'); expect(t('Barbell_Deadlift')).toBe('deadlift'); expect(t('Kettlebell_One-Legged_Deadlift')).toBe('singleLegDeadlift'); expect(t('Kettlebell_Windmill')).toBeNull()
     expect(t('Incline_Dumbbell_Press')).toBe('bench'); expect(t('Dumbbell_Shoulder_Press')).toBe('overheadPress'); expect(t('Seated_Triceps_Press')).toBe('overheadTriceps')
     expect(t('Wide-Grip_Lat_Pulldown')).toBe('pulldown'); expect(t('Straight-Arm_Pulldown')).toBe('straightArmPulldown'); expect(t('Pullups')).toBe('pullup')
-    expect(t('Preacher_Curl')).toBe('preacherCurl'); expect(t('Lying_Leg_Curls')).toBe('legCurlLying'); expect(t('Palms-Up_Barbell_Wrist_Curl_Over_A_Bench')).toBeNull()
+    expect(t('Preacher_Curl')).toBe('preacherCurl'); expect(t('Lying_Leg_Curls')).toBe('legCurlLying'); expect(t('Palms-Up_Barbell_Wrist_Curl_Over_A_Bench')).toBe('wristCurl')
     expect(t('Smith_Machine_Bench_Press')).toBe('bench'); expect(t('Smith_Machine_Squat')).toBe('squat'); expect(t('Seated_Band_Hamstring_Curl')).toBe('legCurlSeated'); expect(t('Front_Squat_Clean_Grip')).toBe('squatFront'); expect(t('Power_Clean')).toBeNull()
-    expect(t('Pushups')).toBe('pushup'); expect(t('Handstand_Push-Ups')).toBeNull(); expect(t('Crunches')).toBe('crunch'); expect(t('Cable_Crunch')).toBe('cableCrunch'); expect(t('Standing_Rope_Crunch')).toBeNull()
-    expect(t('Straight-Arm_Dumbbell_Pullover')).toBe('pullover'); expect(t('Inverted_Row')).toBe('invertedRow'); expect(t('Glute_Kickback')).toBeNull(); expect(t('Standing_Alternating_Dumbbell_Press')).toBe('altPress')
+    expect(t('Pushups')).toBe('pushup'); expect(t('Handstand_Push-Ups')).toBeNull(); expect(t('Crunches')).toBe('crunch'); expect(t('Cable_Crunch')).toBe('cableCrunch'); expect(t('Standing_Rope_Crunch')).toBe('cableCrunch')
+    expect(t('Straight-Arm_Dumbbell_Pullover')).toBe('pullover'); expect(t('Inverted_Row')).toBe('invertedRow'); expect(t('Glute_Kickback')).toBe('donkeyKick'); expect(t('Standing_Alternating_Dumbbell_Press')).toBe('altPress')
   })
   it.each(CASES)('%s: huesos de largo constante, apoyos fijos y articulaciones dentro de rango', (id, m) => {
     const feet = T.map((t) => solve(mix(m.a, m.b, t)).leg.end)
@@ -68,7 +70,7 @@ describe('animaciones esquemáticas', () => {
     for (const x of catalog) { if (frontFor(x)) expect(MOVES[x.id] ?? buildMove(x), x.id).toBeFalsy(); if (x.c !== 'strength' && x.c !== 'powerlifting') expect(buildFront(x), x.id).toBeNull() }
     const f = (id: string) => frontFor(by.get(id)!)
     expect(f('Side_Lateral_Raise')).toBe('lateralRaise'); expect(f('Dumbbell_Flyes')).toBe('flye'); expect(f('Cable_Crossover')).toBe('crossover'); expect(f('Barbell_Shrug')).toBe('shrug')
-    expect(f('Dumbbell_Side_Bend')).toBe('sideBend'); expect(f('Thigh_Abductor')).toBe('hipAbduction'); expect(f('Single-Arm_Cable_Crossover')).toBeNull(); expect(f('Scapular_Pull-Up')).toBeNull(); expect(f('Front_Dumbbell_Raise')).toBeNull()
+    expect(f('Dumbbell_Side_Bend')).toBe('sideBend'); expect(f('Thigh_Abductor')).toBe('hipAbduction'); expect(f('Scapular_Pull-Up')).toBeNull(); expect(f('Front_Dumbbell_Raise')).toBeNull()
   })
   it.each(FRONT_CASES)('%s (frente): segmentos sin estirarse, simetría y cuadro', (id, m) => {
     for (const t of T) {
@@ -76,7 +78,7 @@ describe('animaciones esquemáticas', () => {
       const bone = (l: FL, l1: number, l2: number) => { expect(dist(l.root, l.joint)).toBeLessThanOrEqual(l1 + 0.05); expect(dist(l.joint, l.end)).toBeLessThanOrEqual(l2 + 0.05) }
       for (const a of q.sh) bone(a, LEN.uarm, LEN.farm)
       for (const l of q.lg) { bone(l, LEN.thigh, LEN.shin); const k = mixFront(m.a, m.b, t).leg; if ('foot' in k) { expect(dist(l.root, l.joint)).toBeCloseTo(LEN.thigh, 1); expect(angleAt(l as Limb)).toBeGreaterThan(60) } }
-      expect(dist(q.hip, q.chest)).toBeCloseTo(LEN.torso, 1)
+      expect(dist(q.hip, q.chest)).toBeLessThanOrEqual(LEN.torso + 0.05)
       for (const p of [q.hip, q.chest, q.head, ...q.sh.flatMap((l) => [l.root, l.joint, l.end]), ...q.lg.flatMap((l) => [l.joint, l.end])]) { expect(p[1], `y t=${t}`).toBeLessThanOrEqual(max); expect(p[1]).toBeGreaterThan(8); expect(p[0]).toBeGreaterThan(8); expect(p[0]).toBeLessThan(292) }
       // Los hombros quedan a la misma distancia del centro del pecho y las manos no se cruzan
       expect(dist(q.sh[0].root, q.chest)).toBeCloseTo(dist(q.sh[1].root, q.chest), 3)

@@ -12,6 +12,7 @@ export interface FLimb { u: number; f: number; ku?: number; kf?: number }
 export type FLeg = FLimb | { foot: V }                // foot = [distancia al centro, y]
 export interface FKey {
   hip: V; lean?: number; shrug?: number
+  kt?: number                                         // escorzo del tronco (inclinado hacia quien mira)
   arm: FLimb; armL?: FLimb                            // arm = lado derecho de la imagen; armL = izquierdo (por defecto, espejo)
   leg: FLeg; legL?: FLeg
   rel?: boolean                                       // los brazos giran con la inclinación del tronco
@@ -26,7 +27,7 @@ export type FProp =
   | { t: 'posts'; x: number; top: number }            // dos postes simétricos
 export interface FrontMove { view: 'frente' | 'arriba'; a: FKey; b: FKey; props: FProp[]; cue: string }
 export interface FL { root: V; joint: V; end: V }
-export interface FPose { hip: V; chest: V; head: V; up: V; sh: [FL, FL]; lg: [FL, FL] }
+export interface FPose { hip: V; chest: V; head: V; up: V; tl: number; sh: [FL, FL]; lg: [FL, FL] }
 
 export const SHOULDER_W = 17, HIP_W = 9
 const rad = (d: number) => (d * Math.PI) / 180
@@ -39,8 +40,9 @@ function limb(root: V, l: FLimb, s: 1 | -1, l1: number, l2: number, rot = 0): FL
 }
 export function solveFront(k: FKey): FPose {
   const lean = k.lean ?? 0, up: V = [Math.sin(rad(lean)), -Math.cos(rad(lean))], right: V = [-up[1], up[0]]
-  const chest: V = [k.hip[0] + up[0] * LEN.torso, k.hip[1] + up[1] * LEN.torso]
-  const head: V = [chest[0] + up[0] * (LEN.neck + LEN.head), chest[1] + up[1] * (LEN.neck + LEN.head)]
+  const tl = LEN.torso * (k.kt ?? 1), nk = (LEN.neck + LEN.head) * ((k.kt ?? 1) < 1 ? 0.55 : 1)
+  const chest: V = [k.hip[0] + up[0] * tl, k.hip[1] + up[1] * tl]
+  const head: V = [chest[0] + up[0] * nk, chest[1] + up[1] * nk]
   const sh = (s: 1 | -1): V => [chest[0] + right[0] * SHOULDER_W * s + up[0] * (k.shrug ?? 0), chest[1] + right[1] * SHOULDER_W * s + up[1] * (k.shrug ?? 0)]
   const leg = (l: FLeg, s: 1 | -1): FL => {
     const root: V = [k.hip[0] + HIP_W * s, k.hip[1]]
@@ -49,12 +51,12 @@ export function solveFront(k: FKey): FPose {
   }
   // En el brazo, `rot` con signo del lado hace que ambos giren en el mismo sentido que el tronco.
   const arm = (l: FLimb, s: 1 | -1) => limb(sh(s), l, s, LEN.uarm, LEN.farm, k.rel ? -lean : 0)
-  return { hip: k.hip, chest, head, up, sh: [arm(k.arm, 1), arm(k.armL ?? k.arm, -1)], lg: [leg(k.leg, 1), leg(k.legL ?? k.leg, -1)] }
+  return { hip: k.hip, chest, head, up, tl, sh: [arm(k.arm, 1), arm(k.armL ?? k.arm, -1)], lg: [leg(k.leg, 1), leg(k.legL ?? k.leg, -1)] }
 }
 
 const full = (l: FLimb): Required<FLimb> => ({ ku: 1, kf: 1, ...l })
 const fullLeg = (l: FLeg): FLeg => ('foot' in l ? l : full(l))
-const norm = (k: FKey) => ({ hip: k.hip, lean: k.lean ?? 0, shrug: k.shrug ?? 0, rel: k.rel, arm: full(k.arm), armL: full(k.armL ?? k.arm), leg: fullLeg(k.leg), legL: fullLeg(k.legL ?? k.leg) })
+const norm = (k: FKey) => ({ hip: k.hip, kt: k.kt ?? 1, lean: k.lean ?? 0, shrug: k.shrug ?? 0, rel: k.rel, arm: full(k.arm), armL: full(k.armL ?? k.arm), leg: fullLeg(k.leg), legL: fullLeg(k.legL ?? k.leg) })
 function lerp(a: any, b: any, t: number): any {
   if (typeof a === 'number') return a + (b - a) * t
   if (Array.isArray(a)) return a.map((x, i) => lerp(x, b[i], t))
@@ -74,7 +76,7 @@ export function FigureFront({ pose: q, move, primary, secondary }: { pose: FPose
   const col = (...ms: Muscle[]) => (ms.some((m) => primary.includes(m)) ? EMBER : ms.some((m) => secondary.includes(m)) ? AMBER : null)
   const top = move.view === 'arriba'
   const right: V = [-q.up[1], q.up[0]]
-  const T = (side: number, upK: number): V => [q.hip[0] + right[0] * side + q.up[0] * LEN.torso * upK, q.hip[1] + right[1] * side + q.up[1] * LEN.torso * upK]
+  const T = (side: number, upK: number): V => [q.hip[0] + right[0] * side + q.up[0] * q.tl * upK, q.hip[1] + right[1] * side + q.up[1] * q.tl * upK]
   const mirror = (v: V): V => [300 - v[0], v[1]]
   const stripe = (a: V, b: V, w: number, c: string | null, f = 0.15, t = 0.85) => c && <Seg a={at(a, b, f)} b={at(a, b, t)} w={w} c={c} />
   const prop = (p: FProp, i: number, layer: 'back' | 'front') => {
@@ -171,6 +173,21 @@ const F: Record<string, FBuild> = {
   },
   shrug: (x, n) => ({ view: 'frente', cue: 'Brazos rectos; sube los hombros hacia las orejas en línea vertical, pausa arriba y baja sin girarlos.',
     a: { hip: HIP, arm: hang, leg: standLeg, shrug: 0 }, b: { hip: HIP, arm: hang, leg: standLeg, shrug: 9 }, props: x.eq === 'cable' ? [{ t: 'cables', from: [164, 177] }] : inHands(x, n) }),
+  flyeOne: () => ({ view: 'arriba', cue: 'Un brazo a la vez: ábrelo en arco con el codo ligeramente flexionado y ciérralo sobre el pecho, sin girar el tronco.',
+    a: { hip: HIP_TOP, arm: { u: 92, f: 96 }, armL: { u: 12, f: 8 }, leg: topLeg }, b: { hip: HIP_TOP, arm: { u: 90, f: 90, ku: 0.2, kf: -0.75 }, armL: { u: 12, f: 8 }, leg: topLeg }, props: [pad, { t: 'dumbbells', side: 1 }] }),
+  bentOverRaise: (x, n) => {
+    const s = /seated/.test(n), one = x.eq === 'cable', base = { hip: s ? HIP_SEAT : ([150, 104] as V), kt: 0.4, leg: s ? seatLeg : standLeg }, rest: FLimb = { u: 8, f: 2, ku: 0.8 }
+    return { view: 'frente', cue: 'Torso inclinado al frente con la espalda recta; abre los brazos hacia los lados juntando las escápulas y baja lento.',
+      a: { ...base, arm: { u: 4, f: 3 }, armL: one ? rest : { u: 4, f: 3 } }, b: { ...base, arm: { u: 84, f: 80 }, armL: one ? rest : { u: 84, f: 80 } },
+      props: [...(s ? [bench] : []), ...(one ? [{ t: 'cables', from: [60, 172], side: 1 } as FProp] : [{ t: 'dumbbells' } as FProp])] }
+  },
+  rotation: (x, n) => { const ext = /external/.test(n), out: FLimb = { u: 4, f: 90, kf: 0.85 }, across: FLimb = { u: 4, f: 90, kf: -0.85 }
+    return { view: 'frente', cue: ext ? 'Codo pegado al costado y flexionado a 90°; gira el antebrazo hacia afuera sin separar el codo.' : 'Codo pegado al costado y flexionado a 90°; gira el antebrazo hacia el abdomen sin separar el codo.',
+      a: { hip: HIP, arm: ext ? across : out, armL: onHip, leg: standLeg }, b: { hip: HIP, arm: ext ? out : across, armL: onHip, leg: standLeg }, props: [{ t: 'cables', from: ext ? [54, 83] : [248, 83], side: 1 }] } },
+  sideLunge: () => ({ view: 'frente', cue: 'Pies muy separados; carga el peso hacia un lado flexionando esa rodilla y deja la otra pierna casi extendida.',
+    a: { hip: [150, 106], arm: { u: 62, f: 212 }, leg: { foot: [32, 176] } }, b: { hip: [174, 130], arm: { u: 62, f: 212 }, leg: { foot: [32, 176] } }, props: [{ t: 'bar', at: 'shoulders' }] }),
+  sumoHighPull: () => ({ view: 'frente', cue: 'Desde sentadilla ancha, extiende piernas y cadera y jala la pesa pegada al cuerpo hasta el pecho, con los codos por encima de las manos.',
+    a: { hip: [150, 136], arm: { u: -9, f: -12 }, leg: { foot: [35, 176] } }, b: { hip: [150, 108], arm: { u: 105, f: -80, ku: 0.75 }, leg: { foot: [35, 176] } }, props: [{ t: 'center' }] }),
   flye: (x, n) => ({ view: 'arriba', cue: 'Abre los brazos en arco con los codos ligeramente flexionados hasta sentir el estiramiento del pecho; cierra como si abrazaras.',
     a: { hip: HIP_TOP, arm: { u: 92, f: 96 }, leg: topLeg }, b: { hip: HIP_TOP, arm: { u: 90, f: 90, ku: 0.2, kf: -0.75 }, leg: topLeg }, props: [pad, ...inHands(x, n, [248, 92])] }),
   aroundWorld: () => ({ view: 'arriba', cue: 'Acostado, lleva las mancuernas en semicírculo desde la cadera hasta arriba de la cabeza, con los brazos casi rectos y paralelos al piso.',
@@ -179,6 +196,8 @@ const F: Record<string, FBuild> = {
     a: { hip: HIP_TOP, arm: { u: 90, f: 90, ku: 0.18, kf: 0.12 }, leg: topLeg }, b: { hip: HIP_TOP, arm: { u: 92, f: 94 }, leg: topLeg }, props: [pad, ...inHands(x, n)] }),
   crossover: (x, n) => {
     const low = /low/.test(n), posts: FProp = { t: 'posts', x: 52, top: 14 }
+    if (/single-arm/.test(n)) return { view: 'frente', cue: 'Un brazo a la vez: lleva la mano en arco hacia abajo y al centro del cuerpo, sin girar el tronco.',
+      a: { hip: HIP, arm: { u: 104, f: 110 }, armL: onHip, leg: standLeg }, b: { hip: HIP, arm: { u: 25, f: -55 }, armL: onHip, leg: standLeg }, props: [posts, { t: 'cables', from: [248, 18], side: 1 }] }
     return low
       ? { view: 'frente', cue: 'Desde las poleas bajas, sube y junta las manos frente al pecho en arco, con los codos fijos y ligeramente flexionados.',
           a: { hip: HIP, arm: { u: 38, f: 42 }, leg: standLeg }, b: { hip: HIP, arm: { u: 78, f: 90, ku: 0.55, kf: -0.9 }, leg: standLeg }, props: [posts, { t: 'cables', from: [248, 170] }] }
@@ -220,15 +239,20 @@ export function frontFor(x: Exercise): string | null {
   if (x.c !== 'strength' && x.c !== 'powerlifting') return null
   const n = x.e.toLowerCase(), p = x.p[0]
   if (p === 'shoulders') {
-    if (/^(seated |cable seated )?side lateral raise$|^lateral raise - with bands$|^one-arm side laterals$|^standing low-pulley deltoid raise$|^power partials$/.test(n)) return 'lateralRaise'
+    if (/^(seated )?side lateral raise$|^cable seated lateral raise$|^lateral raise - with bands$|^one-arm side laterals$|^standing low-pulley deltoid raise$|^power partials$/.test(n)) return 'lateralRaise'
     if (/^band pull apart$|^back flyes - with bands$|^reverse machine flyes$|^cable rear delt fly$/.test(n)) return 'pullApart'
+    if (/^seated bent-over rear delt raise$|^bent over dumbbell rear delt raise with head on bench$|^bent over low-pulley side lateral$/.test(n)) return 'bentOverRaise'
+    if (/^cable internal rotation$|^(external|internal) rotation with (band|cable)$/.test(n)) return 'rotation'
     if (/^reverse flyes$|^lying rear delt raise$|^dumbbell lying rear lateral raise$/.test(n)) return 'rearFlyeProne'
   }
-  if (p === 'traps' && /shrugs?( |$)/.test(n) && !/scapular|calf-machine|middle back/.test(n)) return 'shrug'
+  if (p === 'traps' && /shrugs?( |$)/.test(n) && !/scapular|middle back/.test(n)) return 'shrug'
+  if (/^kettlebell sumo high pull$/.test(n)) return 'sumoHighPull'
+  if (/^barbell side split squat$/.test(n)) return 'sideLunge'
   if (p === 'chest') {
     if (/^(incline |decline )?dumbbell flyes( - with a twist)?$|^flat bench cable flyes$|^incline cable flye$/.test(n)) return 'flye'
     if (/^around the worlds$/.test(n)) return 'aroundWorld'
-    if (/^(low )?cable crossover$|^cross over - with bands$/.test(n)) return 'crossover'
+    if (/^(low |single-arm )?cable crossover$|^cross over - with bands$/.test(n)) return 'crossover'
+    if (/^one-arm flat bench dumbbell flye$/.test(n)) return 'flyeOne'
     if (/^cable iron cross$/.test(n)) return 'ironCross'
     if (/^butterfly$/.test(n)) return 'pecDeck'
   }

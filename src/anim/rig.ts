@@ -7,6 +7,7 @@
 export type V = [number, number]
 export const LEN = { torso: 46, neck: 7, head: 9, uarm: 26, farm: 24, thigh: 38, shin: 36, foot: 13 }
 export const FLOOR = 180
+export const HAND = 8
 
 /** Brazo por ángulos (u = brazo, f = antebrazo) o por punto de la mano. Con `rel`, la mano va en el marco del torso: [hacia la espalda, hacia la cabeza] desde el hombro. */
 export type Arm = { u: number; f: number } | { hand: V; side: 1 | -1; rel?: boolean }
@@ -17,10 +18,11 @@ export interface Key {
   torso: number         // dirección cadera → hombro
   head?: V              // posición fija de la cabeza (acostado)
   arm: Arm; armFar?: Arm
+  wrist?: number        // dirección de la mano (curls de muñeca); el equipo se dibuja en la punta de la mano
   leg: Leg; legFar?: Leg
 }
 export interface Limb { root: V; joint: V; end: V }
-export interface Pose { torso: number; pelvis: V; shoulder: V; head: V; arm: Limb; armFar: Limb; leg: Limb; legFar: Limb; toe: V; toeFar: V }
+export interface Pose { torso: number; pelvis: V; shoulder: V; head: V; grip: V; arm: Limb; armFar: Limb; leg: Limb; legFar: Limb; toe: V; toeFar: V }
 
 export const dir = (deg: number): V => [Math.sin((deg * Math.PI) / 180), Math.cos((deg * Math.PI) / 180)]
 export const add = (a: V, b: V, k = 1): V => [a[0] + b[0] * k, a[1] + b[1] * k]
@@ -66,8 +68,8 @@ export function solve(k: Key): Pose {
   const pelvis: V = k.pelvis ?? add(k.shoulder!, d, -LEN.torso)
   const shoulder: V = k.shoulder && !k.pelvis ? k.shoulder : add(pelvis, d, LEN.torso)
   const head: V = k.head ?? add(shoulder, d, LEN.neck + LEN.head)
-  const l = leg(pelvis, k.leg), lf = leg(pelvis, k.legFar ?? k.leg)
-  return { torso: k.torso, pelvis, shoulder, head, arm: arm(shoulder, k.arm, k.torso), armFar: arm(shoulder, k.armFar ?? k.arm, k.torso), leg: l, legFar: lf, toe: l.toe, toeFar: lf.toe }
+  const l = leg(pelvis, k.leg), lf = leg(pelvis, k.legFar ?? k.leg), near = arm(shoulder, k.arm, k.torso)
+  return { torso: k.torso, pelvis, shoulder, head, grip: k.wrist == null ? near.end : add(near.end, dir(k.wrist), HAND), arm: near, armFar: arm(shoulder, k.armFar ?? k.arm, k.torso), leg: l, legFar: lf, toe: l.toe, toeFar: lf.toe }
 }
 
 /** Ángulo interior de una articulación (180 = extendida). */
