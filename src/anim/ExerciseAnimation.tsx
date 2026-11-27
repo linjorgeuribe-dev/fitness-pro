@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { MOVES } from './moves'
+import { buildMove } from './templates'
 import { mix, phase, solve } from './rig'
 import { Figure } from './Figure'
 import type { Exercise } from '../lib/types'
 
 /** Esquema animado del movimiento (figura propia dibujada por programa). Devuelve null si el ejercicio aún no tiene. */
 export function ExerciseAnimation({ ex }: { ex: Exercise }) {
-  const move = MOVES[ex.id]
+  // Posturas afinadas a mano si existen; si no, la plantilla de su familia de movimiento.
+  const move = MOVES[ex.id] ?? buildMove(ex)
   const still = typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
   const [t, setT] = useState(still ? 0.5 : 0)
   useEffect(() => {

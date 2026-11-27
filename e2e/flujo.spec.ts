@@ -287,8 +287,11 @@ test('animación esquemática: se muestra y se mueve en los ejercicios que la ti
   const y1 = await hip(); await page.waitForTimeout(700); const y2 = await hip()
   expect(y1).not.toBe(y2) // la cadera cambia de altura: está animando
   await page.waitForTimeout(300); await page.screenshot({ path: 'docs/capturas/18-animacion.png' })
-  // Un ejercicio sin animación sigue mostrando solo sus fotos
+  // Un ejercicio animado por plantilla de patrón de movimiento
   await page.goto('/explore/Pushups')
+  await expect(page.getByLabel(/Esquema animado de/)).toBeVisible()
+  // Un ejercicio sin animación (plano frontal) sigue mostrando solo sus fotos
+  await page.goto('/explore/Side_Lateral_Raise')
   await expect(page.getByRole('heading', { name: 'Ejecución paso a paso' })).toBeVisible()
   await expect(page.getByLabel(/Esquema animado de/)).toHaveCount(0)
 })

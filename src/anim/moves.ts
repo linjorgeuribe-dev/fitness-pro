@@ -7,7 +7,8 @@ export type Prop =
   | { t: 'plate'; len: number }                       // plataforma que sigue a la planta del pie (prensa)
   | { t: 'bench'; x: number; y: number; w: number; h?: number }
   | { t: 'line'; pts: V[]; w?: number }
-export interface Move { a: Key; b: Key; props: Prop[]; cue: string }
+/** `freeFeet`: el pie se desplaza o pivota por diseño (prensa, pantorrilla, colgado), no está plantado. */
+export interface Move { a: Key; b: Key; props: Prop[]; cue: string; freeFeet?: boolean }
 
 const STAND: V = [150, 103], FEET: V = [152, 175]
 const hang = { u: 3, f: 6 }
@@ -25,9 +26,9 @@ export const MOVES: Record<string, Move> = {
   },
   Leg_Press: {
     cue: 'Baja la plataforma con control hasta ~90° de rodilla; empuja sin bloquear las rodillas.',
-    a: { pelvis: [95, 150], torso: 228, arm: { hand: [104, 156], side: -1 }, leg: { foot: [149, 106], toe: 222 } },
-    b: { pelvis: [95, 150], torso: 228, arm: { hand: [104, 156], side: -1 }, leg: { foot: [131, 121], toe: 222 } },
-    props: [{ t: 'line', pts: [[108, 163], [58, 116]], w: 9 }, { t: 'line', pts: [[84, 168], [120, 168]], w: 9 }, { t: 'line', pts: [[78, 177], [222, 177]], w: 5 }, { t: 'line', pts: [[222, 177], [196, 70]], w: 5 }, { t: 'plate', len: 34 }],
+    a: { pelvis: [95, 150], torso: 228, arm: { hand: [97, 151], side: -1 }, leg: { foot: [149, 106], toe: 222 } },
+    b: { pelvis: [95, 150], torso: 228, arm: { hand: [97, 151], side: -1 }, leg: { foot: [131, 121], toe: 222 } },
+    props: [{ t: 'line', pts: [[108, 163], [58, 116]], w: 9 }, { t: 'line', pts: [[84, 168], [120, 168]], w: 9 }, { t: 'line', pts: [[78, 177], [222, 177]], w: 5 }, { t: 'line', pts: [[222, 177], [196, 70]], w: 5 }, { t: 'plate', len: 34 }], freeFeet: true,
   },
   Dumbbell_Lunges: {
     cue: 'Baja en vertical; rodilla de adelante sobre el tobillo; torso erguido.',
@@ -37,14 +38,14 @@ export const MOVES: Record<string, Move> = {
   },
   Barbell_Hip_Thrust: {
     cue: 'Espalda alta apoyada; empuja con los talones hasta alinear rodilla, cadera y hombro.',
-    a: { shoulder: [95, 127], torso: 226, arm: { hand: [136, 150], side: 1 }, leg: { foot: [168, 175] } },
-    b: { shoulder: [95, 127], torso: 274, arm: { hand: [148, 115], side: 1 }, leg: { foot: [168, 175] } },
+    a: { shoulder: [95, 127], torso: 226, arm: { hand: [-11, -43], side: 1, rel: true }, leg: { foot: [168, 175] } },
+    b: { shoulder: [95, 127], torso: 274, arm: { hand: [-11, -43], side: 1, rel: true }, leg: { foot: [168, 175] } },
     props: [{ t: 'bench', x: 52, y: 132, w: 50 }, { t: 'barbell', at: 'pelvis', off: [-11, 3] }],
   },
   Barbell_Glute_Bridge: {
     cue: 'Hombros en el piso; sube la cadera apretando glúteos, sin arquear la zona lumbar.',
-    a: { shoulder: [80, 171], torso: 272, head: [63, 168], arm: { hand: [133, 160], side: 1 }, leg: { foot: [166, 175] } },
-    b: { shoulder: [80, 171], torso: 302, head: [63, 168], arm: { hand: [127, 137], side: 1 }, leg: { foot: [166, 175] } },
+    a: { shoulder: [80, 171], torso: 272, head: [63, 168], arm: { hand: [-11, -43], side: 1, rel: true }, leg: { foot: [166, 175] } },
+    b: { shoulder: [80, 171], torso: 302, head: [63, 168], arm: { hand: [-11, -43], side: 1, rel: true }, leg: { foot: [166, 175] } },
     props: [{ t: 'barbell', at: 'pelvis', off: [-11, 3] }],
   },
   Barbell_Curl: {

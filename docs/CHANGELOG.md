@@ -1,4 +1,9 @@
 # Cambios
+## 0.7.0 — 2026-11-27
+- **Animación esquemática en 264 de 868 ejercicios** (antes 10): 10 ajustados a mano + 254 por 39 plantillas de patrón de movimiento (`src/anim/templates.ts`: sentadilla, zancada, peso muerto, bisagra, press de banca/hombro, fondos, dominada, jalón, remos, curls, extensiones de tríceps, abdominales, pantorrilla, etc.).
+- La asignación es conservadora (`templateFor`): solo fuerza/powerlifting y solo cuando el nombre identifica un patrón que el maniquí de perfil representa bien. El resto conserva sus fotos, sin animación.
+- Pruebas: cada movimiento generado se valida (largos de hueso, apoyos fijos, rangos de codo/rodilla, nada bajo el piso ni fuera de cuadro).
+
 ## 0.6.0 — 2026-11-27
 Animaciones esquemáticas propias (maniquí dibujado por programa, músculos resaltados y clave técnica) en 10 ejercicios de prueba. Ver `src/anim/`.
 

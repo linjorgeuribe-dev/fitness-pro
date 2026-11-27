@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { readFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { MOVES } from '../src/anim/moves'
+import { MOVES, type Move } from '../src/anim/moves'
+import { buildMove, templateFor, TEMPLATE_NAMES } from '../src/anim/templates'
 import { FLOOR, LEN, angleAt, dist, mix, phase, solve, type Limb } from '../src/anim/rig'
 import { Figure } from '../src/anim/Figure'
 import type { Exercise } from '../src/lib/types'
@@ -9,13 +10,32 @@ import type { Exercise } from '../src/lib/types'
 const catalog: Exercise[] = JSON.parse(readFileSync('public/data/exercises.json', 'utf8')).items
 const by = new Map(catalog.map((x) => [x.id, x]))
 const T = [0, 0.25, 0.5, 0.75, 1]
-/** Ejercicios donde el apoyo del pie se desplaza o pivota por diseño. */
-const MOVING_FEET = new Set(['Leg_Press'])
+/** Todas las animaciones del catálogo: las afinadas a mano y las que salen de plantillas, sin repetir las idénticas. */
+const ALL = new Map<string, { move: Move; ids: string[] }>()
+for (const x of catalog) { const m = MOVES[x.id] ?? buildMove(x); if (!m) continue; const k = JSON.stringify(m); ALL.has(k) ? ALL.get(k)!.ids.push(x.id) : ALL.set(k, { move: m, ids: [x.id] }) }
+const CASES = [...ALL.values()].map((v) => [v.ids[0], v.move, v.ids.length] as const)
 
 describe('animaciones esquemáticas', () => {
   it('cada animación corresponde a un ejercicio del catálogo', () => { for (const id of Object.keys(MOVES)) expect(by.has(id), id).toBe(true) })
-  it.each(Object.keys(MOVES))('%s: huesos de largo constante, apoyos fijos y articulaciones dentro de rango', (id) => {
-    const m = MOVES[id]
+  it('cobertura: cada plantilla se usa y la asignación es estable', () => {
+    const used = new Set(catalog.map(templateFor).filter(Boolean))
+    for (const t of TEMPLATE_NAMES) expect(used.has(t), t).toBe(true)
+    const n = catalog.filter((x) => MOVES[x.id] ?? buildMove(x)).length
+    expect(n).toBeGreaterThanOrEqual(260)
+    // Lo que no es fuerza (estiramientos, pliometría, cardio, halterofilia, strongman) nunca recibe animación
+    for (const x of catalog) if (x.c !== 'strength' && x.c !== 'powerlifting') expect(buildMove(x), x.id).toBeNull()
+    // Casos que NO deben confundirse con su plantilla vecina
+    const t = (id: string) => templateFor(by.get(id)!)
+    expect(t('Side_Lateral_Raise')).toBeNull(); expect(t('Dumbbell_Flyes')).toBeNull(); expect(t('Cable_Crossover')).toBeNull()
+    expect(t('Leg_Press')).toBe('legPress'); expect(t('Calf_Press_On_The_Leg_Press_Machine')).toBeNull()
+    expect(t('Romanian_Deadlift')).toBe('hinge'); expect(t('Barbell_Deadlift')).toBe('deadlift'); expect(t('Kettlebell_One-Legged_Deadlift')).toBeNull()
+    expect(t('Incline_Dumbbell_Press')).toBe('bench'); expect(t('Dumbbell_Shoulder_Press')).toBe('overheadPress'); expect(t('Seated_Triceps_Press')).toBe('overheadTriceps')
+    expect(t('Wide-Grip_Lat_Pulldown')).toBe('pulldown'); expect(t('Straight-Arm_Pulldown')).toBe('straightArmPulldown'); expect(t('Pullups')).toBe('pullup')
+    expect(t('Preacher_Curl')).toBe('preacherCurl'); expect(t('Lying_Leg_Curls')).toBe('legCurlLying'); expect(t('Palms-Up_Barbell_Wrist_Curl_Over_A_Bench')).toBeNull()
+    expect(t('Smith_Machine_Bench_Press')).toBe('bench'); expect(t('Smith_Machine_Squat')).toBe('squat'); expect(t('Seated_Band_Hamstring_Curl')).toBe('legCurlSeated'); expect(t('Front_Squat_Clean_Grip')).toBe('squatFront'); expect(t('Power_Clean')).toBeNull()
+    expect(t('Pushups')).toBe('pushup'); expect(t('Handstand_Push-Ups')).toBeNull(); expect(t('Crunches')).toBe('crunch'); expect(t('Cable_Crunch')).toBeNull()
+  })
+  it.each(CASES)('%s: huesos de largo constante, apoyos fijos y articulaciones dentro de rango', (id, m) => {
     const feet = T.map((t) => solve(mix(m.a, m.b, t)).leg.end)
     for (const t of T) {
       const q = solve(mix(m.a, m.b, t))
@@ -26,13 +46,15 @@ describe('animaciones esquemáticas', () => {
       const key = mix(m.a, m.b, t)
       expect(dist(q.leg.end, key.leg.foot), `pie t=${t}`).toBeLessThan(0.6)
       if (key.legFar) expect(dist(q.legFar.end, key.legFar.foot), `pie lejano t=${t}`).toBeLessThan(0.6)
+      // Si la mano va a un punto fijo (barra, agarre), el brazo lo alcanza sin estirarse
+      if ('hand' in key.arm && !key.arm.rel) expect(dist(q.arm.end, key.arm.hand), `mano t=${t}`).toBeLessThan(0.8)
       // Rangos articulares: rodilla y codo no se hiperextienden ni se cierran más de lo anatómico
       for (const [name, l] of [['rodilla', q.leg], ['rodilla lejana', q.legFar], ['codo', q.arm]] as const) { const a = angleAt(l); expect(a, `${name} t=${t}`).toBeGreaterThan(28); expect(a, `${name} t=${t}`).toBeLessThanOrEqual(180) }
       // Nada atraviesa el piso ni se sale del cuadro
       for (const p of [q.pelvis, q.shoulder, q.head, q.arm.joint, q.arm.end, q.leg.joint, q.leg.end, q.toe, q.legFar.joint, q.legFar.end, q.toeFar]) { expect(p[1]).toBeLessThanOrEqual(FLOOR + 1); expect(p[1]).toBeGreaterThan(8); expect(p[0]).toBeGreaterThan(8); expect(p[0]).toBeLessThan(292) }
     }
     // Pie de apoyo plantado: el tobillo no se mueve durante el recorrido
-    if (!MOVING_FEET.has(id)) for (const f of feet) expect(dist(f, feet[0])).toBeLessThan(0.6)
+    if (!m.freeFeet) for (const f of feet) expect(dist(f, feet[0])).toBeLessThan(0.6)
   })
   it('recorridos con sentido biomecánico', () => {
     const at = (id: string, t: number) => solve(mix(MOVES[id].a, MOVES[id].b, t))
@@ -55,8 +77,9 @@ describe('animaciones esquemáticas', () => {
   it('genera los fotogramas SVG', () => {
     if (!process.env.ANIM_OUT) return
     mkdirSync(process.env.ANIM_OUT, { recursive: true })
-    for (const id of Object.keys(MOVES)) for (let i = 0; i <= 16; i++) {
-      const m = MOVES[id], ex = by.get(id)!
+    const list = process.env.ANIM_ALL ? [...new Map(catalog.filter((x) => MOVES[x.id] ?? buildMove(x)).map((x) => [MOVES[x.id] ? x.id : templateFor(x)!, x.id])).values()] : Object.keys(MOVES)
+    for (const id of list) for (let i = 0; i <= 16; i += process.env.ANIM_ALL ? 8 : 1) {
+      const ex = by.get(id)!, m = MOVES[id] ?? buildMove(ex)!
       writeFileSync(`${process.env.ANIM_OUT}/${id}_${String(i).padStart(2, '0')}.svg`, renderToStaticMarkup(<Figure pose={solve(mix(m.a, m.b, phase((i / 16) * 1.4)))} props={m.props} primary={ex.p} secondary={ex.s} />).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" '))
     }
   })
