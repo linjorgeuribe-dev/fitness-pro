@@ -1,4 +1,9 @@
 # Cambios
+## 0.8.0 — 2026-11-27
+- **Vista de frente y desde arriba** para el maniquí (`src/anim/front.tsx`): elevaciones laterales, encogimientos, aperturas con mancuernas y poleas, cruces de poleas, pec deck, aperturas posteriores, inclinaciones laterales, sentadilla plié, aductores/abductores y curl en polea alta. La leyenda indica la vista.
+- 12 plantillas de perfil nuevas: pullover, crunch inverso, crunch en polea, hiperextensión, remo invertido, remo con pecho apoyado, patada de glúteo en polea, curl femoral de pie, rueda abdominal, curl concentrado, press alternado y elevación frontal sobre la cabeza.
+- **331 de 868 ejercicios con animación** (antes 264).
+
 ## 0.7.0 — 2026-11-27
 - **Animación esquemática en 264 de 868 ejercicios** (antes 10): 10 ajustados a mano + 254 por 39 plantillas de patrón de movimiento (`src/anim/templates.ts`: sentadilla, zancada, peso muerto, bisagra, press de banca/hombro, fondos, dominada, jalón, remos, curls, extensiones de tríceps, abdominales, pantorrilla, etc.).
 - La asignación es conservadora (`templateFor`): solo fuerza/powerlifting y solo cuando el nombre identifica un patrón que el maniquí de perfil representa bien. El resto conserva sus fotos, sin animación.

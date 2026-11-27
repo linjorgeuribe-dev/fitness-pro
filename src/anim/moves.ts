@@ -3,7 +3,7 @@ import type { Key, V } from './rig'
 export type Prop =
   | { t: 'barbell'; at: 'hand' | 'shoulder' | 'pelvis'; off?: V; r?: number } // off en el marco del torso: [espalda, cabeza]
   | { t: 'dumbbell'; at: 'hand' }
-  | { t: 'cable'; from: V }
+  | { t: 'cable'; from: V; to?: 'foot' }               // por defecto llega a la mano; 'foot' = al tobillo
   | { t: 'plate'; len: number }                       // plataforma que sigue a la planta del pie (prensa)
   | { t: 'bench'; x: number; y: number; w: number; h?: number }
   | { t: 'line'; pts: V[]; w?: number }

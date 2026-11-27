@@ -290,8 +290,13 @@ test('animación esquemática: se muestra y se mueve en los ejercicios que la ti
   // Un ejercicio animado por plantilla de patrón de movimiento
   await page.goto('/explore/Pushups')
   await expect(page.getByLabel(/Esquema animado de/)).toBeVisible()
-  // Un ejercicio sin animación (plano frontal) sigue mostrando solo sus fotos
+  // Un ejercicio de plano frontal usa la vista de frente
   await page.goto('/explore/Side_Lateral_Raise')
+  await expect(page.getByLabel(/Esquema animado de/)).toBeVisible()
+  await expect(page.getByText('Vista de frente.')).toBeVisible()
+  await page.waitForTimeout(900); await page.screenshot({ path: 'docs/capturas/19-animacion-frente.png' })
+  // Un ejercicio sin animación (isométrico) sigue mostrando solo sus fotos
+  await page.goto('/explore/Plank')
   await expect(page.getByRole('heading', { name: 'Ejecución paso a paso' })).toBeVisible()
   await expect(page.getByLabel(/Esquema animado de/)).toHaveCount(0)
 })
