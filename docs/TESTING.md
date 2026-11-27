@@ -4,7 +4,7 @@
 |---|---|---|
 | Unitarias (motores, catálogo, nutrición) | Vitest | 47/47 |
 | API de cuentas y sincronización sobre Postgres embebido | Vitest + PGlite | 15/15 |
-| End-to-end móvil (Pixel 7 emulado, Chrome) | Playwright | 10/10 |
+| End-to-end móvil (Pixel 7 emulado, Chrome) | Playwright | 11/11 |
 | End-to-end escritorio 1280 px | Playwright | 1/1 |
 | Tipos | `tsc` estricto | sin errores |
 | Dependencias de producción | `npm audit --omit=dev` | 0 vulnerabilidades |

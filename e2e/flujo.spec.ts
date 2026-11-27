@@ -276,3 +276,19 @@ test('entreno libre: agregar varios ejercicios seguidos sin que el selector se c
   await dlg.getByRole('button', { name: 'Listo' }).click()
   await expect(page.locator('section')).toHaveCount(1)
 })
+
+test('animación esquemática: se muestra y se mueve en los ejercicios que la tienen', async ({ page }) => {
+  await onboard(page)
+  await page.goto('/explore/Barbell_Squat')
+  const fig = page.getByLabel(/Esquema animado de/)
+  await expect(fig).toBeVisible()
+  await expect(page.getByText('Clave técnica:')).toBeVisible()
+  const hip = () => fig.locator('svg circle').first().getAttribute('cy')
+  const y1 = await hip(); await page.waitForTimeout(700); const y2 = await hip()
+  expect(y1).not.toBe(y2) // la cadera cambia de altura: está animando
+  await page.waitForTimeout(300); await page.screenshot({ path: 'docs/capturas/18-animacion.png' })
+  // Un ejercicio sin animación sigue mostrando solo sus fotos
+  await page.goto('/explore/Pushups')
+  await expect(page.getByRole('heading', { name: 'Ejecución paso a paso' })).toBeVisible()
+  await expect(page.getByLabel(/Esquema animado de/)).toHaveCount(0)
+})

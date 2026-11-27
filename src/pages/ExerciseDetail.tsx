@@ -10,6 +10,7 @@ import { e1rm } from '../engine/calc'
 import { alternatives } from '../engine/generator'
 import { Card, Empty, Page } from '../components/ui'
 import { ExerciseFrames, ExerciseMedia } from '../components/ExerciseMedia'
+import { ExerciseAnimation } from '../anim/ExerciseAnimation'
 import { BodyMap } from '../components/BodyMap'
 import { LineChart } from '../components/Charts'
 import { ExerciseRow } from './Explore'
@@ -21,6 +22,7 @@ export function ExerciseInfo({ ex, compact }: { ex: Exercise; compact?: boolean 
   useEffect(() => { let on = true; setSteps(null); loadInstructions().then((d) => on && setSteps(d[ex.id] ?? [])).catch(() => on && setErr(true)); return () => { on = false } }, [ex.id])
   return (
     <div className="space-y-4">
+      <ExerciseAnimation ex={ex} />
       <ExerciseMedia ex={ex} />
       {!compact && <ExerciseFrames ex={ex} />}
       <div className="flex flex-wrap gap-2 text-xs font-bold">

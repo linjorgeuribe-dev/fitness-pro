@@ -4,6 +4,7 @@
    **Nutrición sin base de alimentos**: calorías y macros se escriben a mano desde la etiqueta; no hay buscador ni lector de código de barras.
    **Fotos de progreso solo locales**: se pierden si se borran los datos del navegador o se cambia de teléfono.
 2. **Traducción en revisión**: nombres e instrucciones traducidos automáticamente; puede haber términos mejorables.
+   **Animaciones esquemáticas**: solo 10 ejercicios; son de perfil (los brazos que salen hacia los lados se ven acortados) y las posturas las definió el desarrollador, sin revisión de un entrenador todavía.
 3. **Demostración = 2 fotos**, no video. Algunas fotos de la fuente son de baja resolución.
 4. **Fotos sin conexión**: solo quedan disponibles las que ya se vieron con conexión (el resto muestra un aviso). Texto e interfaz sí funcionan completos offline.
 5. **Temporizador en segundo plano**: el aviso sonoro depende de que el navegador mantenga la pestaña activa; no hay notificaciones push. Se pide mantener la pantalla encendida (Wake Lock) donde se soporta.

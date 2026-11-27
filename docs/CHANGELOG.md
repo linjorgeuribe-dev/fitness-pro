@@ -1,4 +1,7 @@
 # Cambios
+## 0.6.0 — 2026-11-27
+Animaciones esquemáticas propias (maniquí dibujado por programa, músculos resaltados y clave técnica) en 10 ejercicios de prueba. Ver `src/anim/`.
+
 ## 0.5.1 — 2026-11-25
 El selector de ejercicios recuerda músculo y filtros entre aperturas; en el entrenamiento en vivo se pueden agregar varios ejercicios seguidos sin que se cierre; las versiones nuevas se aplican solas al abrir la app.
 

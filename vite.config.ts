@@ -42,6 +42,6 @@ export default defineConfig({
     }),
   ],
   build: { target: 'es2022' },
-  test: { environment: 'node', include: ['tests/**/*.test.ts'] },
+  test: { environment: 'node', include: ['tests/**/*.test.{ts,tsx}'] },
   server: { proxy: { '/api': 'http://localhost:4173' } },
 } as any)
